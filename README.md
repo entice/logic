@@ -3,4 +3,4 @@
 Entice.Logic
 ========
 
-Provides the gameplay logic, as entity behaviours.
+Provides the gameplay logic.
