@@ -31,7 +31,6 @@ defmodule Entice.Logic.Area.Maps do
 
   defmacro __before_compile__(_) do
     quote do
-      unquote(inject_using)
 
       @doc """
       Simplistic map getter, tries to convert a PascalCase map name to the module atom.
@@ -45,20 +44,6 @@ defmodule Entice.Logic.Area.Maps do
       end
 
       def get_maps, do: @maps
-    end
-  end
-
-
-  def inject_using do
-    quote unquote: false do
-      #adds an alias for all defined maps through using
-      defmacro __using__(_) do
-        quote do
-          unquote(for map <- @maps do
-            quote do: alias unquote(map)
-          end)
-        end
-      end
     end
   end
 end

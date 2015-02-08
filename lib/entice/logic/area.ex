@@ -12,4 +12,16 @@ defmodule Entice.Logic.Area do
   defmap TeamArenas,   spawn: %Coord{x: -1873, y: 352}
 
   def default_area, do: HeroesAscent
+
+  @doc """
+  Adds an alias for all defined maps when 'used'.
+  """
+  defmacro __using__(_) do
+    quote do
+      alias Entice.Logic.Area
+      unquote(for map <- get_maps do
+        quote do: alias unquote(map)
+      end)
+    end
+  end
 end
