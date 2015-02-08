@@ -15,7 +15,7 @@ defmodule Entice.Logic.Attributes do
   end
 
   defmodule Name, do: defstruct(
-    name: "Hansus Wurstus")
+    name: "Unknown Entity")
 
   defmodule Area, do: defstruct(
     area: Entice.Logic.Area.default_area)
