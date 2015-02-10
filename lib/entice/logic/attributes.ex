@@ -8,7 +8,7 @@ defmodule Entice.Logic.Attributes do
       alias Entice.Logic.Attributes.Position
       alias Entice.Logic.Attributes.Movement
       alias Entice.Logic.Attributes.Appearance
-      alias Entice.Logic.Attributes.Group
+      alias Entice.Logic.Attributes.Leader
       alias Entice.Logic.Attributes.Member
       alias Entice.Logic.Attributes.SkillBar
     end
@@ -39,12 +39,12 @@ defmodule Entice.Logic.Attributes do
     hairstyle: 7,
     face: 30)
 
-  defmodule Group, do: defstruct(
+  defmodule Leader, do: defstruct(
     members: [],
     invited: [])
 
   defmodule Member, do: defstruct(
-    group: "")
+    leader: "")
 
   defmodule SkillBar, do: defstruct(
     slots: %{})
