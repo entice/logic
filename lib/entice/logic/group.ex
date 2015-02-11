@@ -70,9 +70,8 @@ defmodule Entice.Logic.Group do
     alias Entice.Logic.Group
 
 
-    def init(id, attributes, _args) do
-      {:ok, attributes |> put(Leader, %Leader{}), %{entity_id: id}}
-    end
+    def init(id, attributes, _args),
+    do: {:ok, attributes |> put(Leader, %Leader{}), %{entity_id: id}}
 
 
     # merging...
