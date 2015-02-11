@@ -72,8 +72,9 @@ defmodule Entice.Logic.GroupTest do
     assert_receive %{sender: ^e1, event: {:group_assign, ^e2}}
     assert_receive %{sender: ^e1, event: {:group_assign, ^e4}}
 
-    assert {:ok, %Leader{members: [^e3, ^e2, ^e4], invited: []}} = Entity.fetch_attribute(e1, Leader)
-    assert {:ok, %Member{leader: ^e1}}                           = Entity.fetch_attribute(e2, Member)
+    assert {:ok, %Leader{members: [^e3 | new_mems], invited: []}} = Entity.fetch_attribute(e1, Leader)
+    assert {:ok, %Member{leader: ^e1}}                            = Entity.fetch_attribute(e2, Member)
+    assert e2 in new_mems and e4 in new_mems
     assert Entity.has_attribute?(e2, Leader) == false
   end
 
