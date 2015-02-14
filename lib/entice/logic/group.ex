@@ -6,9 +6,8 @@ defmodule Entice.Logic.Group do
   import Map
 
 
-  def init(entity_id) do
-    Entity.put_behaviour(entity_id, LeaderBehaviour, [])
-  end
+  def init(entity_id),
+  do: Entity.put_behaviour(entity_id, LeaderBehaviour, [])
 
 
   @doc """
