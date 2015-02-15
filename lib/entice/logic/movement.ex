@@ -36,15 +36,15 @@ defmodule Entice.Logic.Movement do
     do: {:ok, Map.put(attributes, Movement, %Movement{}), %{entity_id: id}}
 
 
-    def hande_event({:speed, new_speed}, %{Movement => move} = attributes, state),
+    def handle_event({:speed, new_speed}, %{Movement => move} = attributes, state),
     do: {:ok, Map.put(attributes, Movement, %Movement{move | speed: new_speed}), state}
 
 
-    def hande_event({:movetype, new_type}, %{Movement => move} = attributes, state),
+    def handle_event({:movetype, new_type}, %{Movement => move} = attributes, state),
     do: {:ok, Map.put(attributes, Movement, %Movement{move | movetype: new_type}), state}
 
 
-    def hande_event({:goal, new_goal}, %{Movement => move} = attributes, state),
+    def handle_event({:goal, new_goal}, %{Movement => move} = attributes, state),
     do: {:ok, Map.put(attributes, Movement, %Movement{move | goal: new_goal}), state}
 
 
