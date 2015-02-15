@@ -15,8 +15,8 @@ defmodule Entice.Logic.Movement do
   do: Entity.notify(entity_id, {:movetype, new_type})
 
 
-  def change_goal(entity_id, new_goal),
-  do: Entity.notify(entity_id, {:goal, new_goal})
+  def change_goal(entity_id, new_goal, new_plane),
+  do: Entity.notify(entity_id, {:goal, new_goal, new_plane})
 
 
   def remove(entity_id),
@@ -44,8 +44,8 @@ defmodule Entice.Logic.Movement do
     do: {:ok, Map.put(attributes, Movement, %Movement{move | movetype: new_type}), state}
 
 
-    def handle_event({:goal, new_goal}, %{Movement => move} = attributes, state),
-    do: {:ok, Map.put(attributes, Movement, %Movement{move | goal: new_goal}), state}
+    def handle_event({:goal, new_goal, new_plane}, %{Movement => move} = attributes, state),
+    do: {:ok, Map.put(attributes, Movement, %Movement{move | goal: new_goal, plane: new_plane}), state}
 
 
     def terminate(_reason, attributes, state),

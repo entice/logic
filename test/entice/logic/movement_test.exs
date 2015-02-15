@@ -50,8 +50,8 @@ defmodule Entice.Logic.MovementTest do
 
   test "change goal", %{entity_id: eid} do
     Move.init(eid)
-    Move.change_goal(eid, %Coord{x: 42, y: 1337})
-    assert {:ok, %Movement{goal: %Coord{x: 42, y: 1337}}} = Entity.fetch_attribute(eid, Movement)
+    Move.change_goal(eid, %Coord{x: 42, y: 1337}, 13)
+    assert {:ok, %Movement{goal: %Coord{x: 42, y: 1337}, plane: 13}} = Entity.fetch_attribute(eid, Movement)
   end
 
 
