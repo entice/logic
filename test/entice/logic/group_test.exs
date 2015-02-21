@@ -106,4 +106,24 @@ defmodule Entice.Logic.GroupTest do
     assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e2, Leader)
   end
+
+
+  test "remove behaviour as leader", %{e1: e1, e3: e3} do
+    e1 |> Group.remove()
+
+    assert_receive %{sender: ^e3, event: {:group_new_leader, ^e3}}
+
+    assert {:ok, %Leader{members: [], invited: []}} = Entity.fetch_attribute(e3, Leader)
+    assert :error                                   = Entity.fetch_attribute(e1, Leader)
+  end
+
+
+  test "remove behaviour as member", %{e1: e1, e3: e3} do
+    e3 |> Group.remove()
+
+    assert_receive %{sender: ^e1, event: {:group_leave, ^e3}}
+
+    assert {:ok, %Leader{members: [], invited: []}} = Entity.fetch_attribute(e1, Leader)
+    assert :error                                   = Entity.fetch_attribute(e3, Member)
+  end
 end

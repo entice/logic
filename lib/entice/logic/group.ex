@@ -61,6 +61,17 @@ defmodule Entice.Logic.Group do
   do: Entity.notify(leader_id, {:group_leave, member_id})
 
 
+  @doc """
+  Removes any kind of grouping behaviour from this entity.
+  Works reasonably: If you're in a group (member or leader),
+  you will leave the group.
+  """
+  def remove(entity_id) do
+    Entity.remove_behaviour(entity_id, LeaderBehaviour)
+    Entity.remove_behaviour(entity_id, MemberBehaviour)
+  end
+
+
   # Server-internal API
 
 
