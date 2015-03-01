@@ -17,12 +17,14 @@ defmodule Entice.Logic.Area.Maps do
 
 
   defmacro defmap(mapname, opts \\ []) do
-    spawn = Keyword.get(opts, :spawn, quote do %Coord{} end)
+    spawn   = Keyword.get(opts, :spawn, quote do %Coord{} end)
+    outpost = Keyword.get(opts, :outpost, quote do true end)
 
     quote do
       defmodule unquote(mapname) do
         use Entice.Logic.Area.Maps.Map
         def spawn, do: unquote(spawn)
+        def is_outpost?, do: unquote(outpost)
       end
       @maps [ unquote(mapname) | @maps ]
     end
@@ -66,11 +68,13 @@ defmodule Entice.Logic.Area.Maps.Map do
     name = mod |> Module.split |> List.last |> to_string
     uname = underscore(name)
     quote do
-      def spawn, do: %Coord{}
       def name, do: unquote(name)
       def underscore_name, do: unquote(uname)
 
-      defoverridable [spawn: 0]
+      def spawn, do: %Coord{}
+      def is_outpost?, do: true
+
+      defoverridable [spawn: 0, is_outpost?: 0]
     end
   end
 end
