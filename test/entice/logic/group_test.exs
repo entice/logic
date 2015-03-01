@@ -91,7 +91,7 @@ defmodule Entice.Logic.GroupTest do
   end
 
 
-  test "kicking an invite", %{e1: e1, e2: e2} do
+  test "kicking an invite - another", %{e1: e1, e2: e2} do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
@@ -101,7 +101,26 @@ defmodule Entice.Logic.GroupTest do
 
     e2 |> Group.kick(e1)
 
+    assert_receive %{sender: ^e2, event: {:group_kick, ^e1}}
     assert_receive %{sender: ^e1, event: {:group_kick, ^e2}}
+
+    assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e1, Leader)
+    assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e2, Leader)
+  end
+
+
+  test "kicking an invite - my own", %{e1: e1, e2: e2} do
+    e1 |> Group.invite(e2)
+
+    assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+
+    assert {:ok, %Leader{invited: [e2]}} = Entity.fetch_attribute(e1, Leader)
+    assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e2, Leader)
+
+    e1 |> Group.kick(e2)
+
+    assert_receive %{sender: ^e1, event: {:group_kick, ^e2}}
+    assert_receive %{sender: ^e2, event: {:group_kick, ^e1}}
 
     assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}} = Entity.fetch_attribute(e2, Leader)

@@ -50,8 +50,10 @@ defmodule Entice.Logic.Group do
   If target not in group, but in invites, will be removed from invites.
   Only usable by a leader.
   """
-  def kick(sender_id, target_id),
-  do: Entity.notify(target_id, {:group_kick, sender_id})
+  def kick(sender_id, target_id) do
+    Entity.notify(sender_id, {:group_kick, target_id})
+    Entity.notify(target_id, {:group_kick, sender_id})
+  end
 
 
   @doc """
