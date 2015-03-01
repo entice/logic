@@ -113,10 +113,8 @@ defmodule Entice.Logic.Group do
 
     def handle_event({:group_new_leader, leader_id, _invs}, %{Leader => %Leader{members: mems, invited: invs}} = attributes, %{entity_id: id} = state) do
       for m <- mems, do: m |> Group.new_leader(leader_id, invs)
-      Entity.put_behaviour(id, MemberBehaviour, %{leader_id: leader_id})
       id |> Group.self_assign(leader_id)
-      Entity.remove_behaviour(id, LeaderBehaviour)
-      {:ok, Map.put(attributes, Leader, %Leader{}), state}
+      {:become, MemberBehaviour, %{leader_id: leader_id}, Map.put(attributes, Leader, %Leader{}), state}
     end
 
 
@@ -180,11 +178,8 @@ defmodule Entice.Logic.Group do
 
 
     # if leader id and my id are the same, make me leader
-    def handle_event({:group_new_leader, id, invs}, %{Member => %Member{}} = attributes, %{entity_id: id} = state) do
-      Entity.put_behaviour(id, LeaderBehaviour, %{invited: invs})
-      Entity.remove_behaviour(id, MemberBehaviour)
-      {:ok, attributes, state}
-    end
+    def handle_event({:group_new_leader, id, invs}, %{Member => %Member{}} = attributes, %{entity_id: id} = state),
+    do: {:become, LeaderBehaviour, %{invited: invs}, attributes, state}
 
 
     # if someone else is the leader, then just reassign to that entity

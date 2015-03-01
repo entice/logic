@@ -8,8 +8,12 @@ defmodule Entice.Logic.Mixfile do
      deps: deps]
   end
 
+  def application do
+    [applications: [:logger, :entice_entity]]
+  end
+
   defp deps do
-    [{:entice_entity, github: "entice/entity", ref: "db080ad74408471f1c71b55c5d61d3cf00b28040"},
+    [{:entice_entity, github: "entice/entity", ref: "06adfb826f45a3a4c74b9b93a6c1abf094170e1f"},
      {:uuid, "~> 0.1.5"},
      {:inflex, "~> 0.2.5"}]
   end
