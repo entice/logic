@@ -10,6 +10,15 @@ defmodule Entice.Logic.Group do
   do: Entity.put_behaviour(entity_id, LeaderBehaviour, [])
 
 
+  def is_my_leader?(entity_id, leader_id) do
+    my_leader = cond do
+      Entity.has_attribute?(entity_id, Leader) -> entity_id
+      Entity.has_attribute?(entity_id, Member) -> Entity.fetch_attribute!(entity_id, Member) |> Map.get(:leader)
+    end
+    my_leader == leader_id
+  end
+
+
   @doc """
   Members cannot invite.
   Leaders will only invite other leaders.

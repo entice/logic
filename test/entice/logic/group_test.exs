@@ -40,6 +40,15 @@ defmodule Entice.Logic.GroupTest do
   end
 
 
+  test "leader check", %{e1: e1, e2: e2, e3: e3} do
+    assert Group.is_my_leader?(e3, e1) == true
+    assert Group.is_my_leader?(e3, e2) == false
+    assert Group.is_my_leader?(e1, e1) == true
+    assert Group.is_my_leader?(e1, e2) == false
+    assert Group.is_my_leader?(e1, e3) == false
+  end
+
+
   test "inviting", %{e1: e1, e2: e2} do
     e1 |> Group.invite(e2)
 
