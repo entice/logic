@@ -48,7 +48,7 @@ defmodule Entice.Logic.Movement do
     do: {:ok, Map.put(attributes, Movement, %Movement{move | goal: new_goal, plane: new_plane}), state}
 
 
-    def terminate(_reason, attributes, state),
+    def terminate(_reason, attributes, _state),
     do: {:ok, Map.delete(attributes, Movement)}
   end
 end

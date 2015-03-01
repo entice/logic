@@ -1,4 +1,5 @@
 defmodule Entice.Logic.Attributes do
+  alias Entice.Skills
   alias Entice.Utils.Geom.Coord
 
   defmacro __using__(_) do
@@ -47,5 +48,5 @@ defmodule Entice.Logic.Attributes do
     leader: "")
 
   defmodule SkillBar, do: defstruct(
-    slots: %{})
+    slots: List.duplicate(Skills.NoSkill, 8))
 end

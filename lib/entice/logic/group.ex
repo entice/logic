@@ -127,7 +127,7 @@ defmodule Entice.Logic.Group do
     # kicking/leaving...
 
 
-    def handle_event({:group_kick, id}, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, %{entity_id: id} = state) do
+    def handle_event({:group_kick, id}, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, %{entity_id: id}) do
       for m <- mems, do: m |> Group.new_leader(hd, invs)
       init(id, attributes, [])
     end
@@ -151,7 +151,7 @@ defmodule Entice.Logic.Group do
     end
 
 
-    def terminate(:remove_handler, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, %{entity_id: id}) do
+    def terminate(:remove_handler, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, _state) do
       for m <- mems, do: m |> Group.new_leader(hd, invs)
       {:ok, Map.delete(attributes, Leader)}
     end
