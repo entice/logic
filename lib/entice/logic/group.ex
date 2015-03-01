@@ -32,8 +32,8 @@ defmodule Entice.Logic.Group do
   Leader will propagate to their members and become a member.
   (Used internally if invite was successful)
   """
-  def new_leader(entity_id, leader_id),
-  do: Entity.notify(entity_id, {:group_new_leader, leader_id})
+  def new_leader(entity_id, leader_id, invs \\ []),
+  do: Entity.notify(entity_id, {:group_new_leader, leader_id, invs})
 
 
   @doc """
@@ -82,6 +82,9 @@ defmodule Entice.Logic.Group do
     alias Entice.Logic.Group
 
 
+    def init(id, attributes, %{invited: invs}),
+    do: {:ok, attributes |> put(Leader, %Leader{invited: invs}), %{entity_id: id}}
+
     def init(id, attributes, _args),
     do: {:ok, attributes |> put(Leader, %Leader{}), %{entity_id: id}}
 
@@ -92,7 +95,7 @@ defmodule Entice.Logic.Group do
     def handle_event({:group_invite, sender_id}, %{Leader => %Leader{invited: invs}} = attributes, %{entity_id: id} = state) do
       if sender_id in invs do
         case Entity.fetch_attribute(sender_id, Leader) do
-          {:ok, %Leader{}} -> sender_id |> Group.new_leader(id)
+          {:ok, %Leader{}} -> sender_id |> Group.new_leader(id, invs)
           _                -> nil
         end
       else
@@ -108,9 +111,8 @@ defmodule Entice.Logic.Group do
     end
 
 
-    def handle_event({:group_new_leader, leader_id}, %{Leader => %Leader{members: mems, invited: invs}} = attributes, %{entity_id: id} = state) do
-      for m <- mems, do: m |> Group.new_leader(leader_id)
-      for i <- invs, do: id |> Group.kick(i)
+    def handle_event({:group_new_leader, leader_id, _invs}, %{Leader => %Leader{members: mems, invited: invs}} = attributes, %{entity_id: id} = state) do
+      for m <- mems, do: m |> Group.new_leader(leader_id, invs)
       Entity.put_behaviour(id, MemberBehaviour, %{leader_id: leader_id})
       id |> Group.self_assign(leader_id)
       Entity.remove_behaviour(id, LeaderBehaviour)
@@ -127,6 +129,12 @@ defmodule Entice.Logic.Group do
     # kicking/leaving...
 
 
+    def handle_event({:group_kick, id}, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, %{entity_id: id} = state) do
+      for m <- mems, do: m |> Group.new_leader(hd, invs)
+      init(id, attributes, [])
+    end
+
+
     def handle_event({:group_kick, sender_id}, %{Leader => %Leader{invited: invs} = l} = attributes, state) do
       leader = %Leader{l | invited: invs -- [sender_id]}
       {:ok, Map.put(attributes, Leader, leader), state}
@@ -140,14 +148,13 @@ defmodule Entice.Logic.Group do
 
 
     def terminate(:remove_handler, %{Leader => %Leader{members: [], invited: invs}} = attributes, %{entity_id: id}) do
-      for i <- invs, do: id |> Group.kick(i) # wont make it before termination!
+      for i <- invs, do: id |> Group.kick(i)
       {:ok, Map.delete(attributes, Leader)}
     end
 
 
     def terminate(:remove_handler, %{Leader => %Leader{members: [hd | _] = mems, invited: invs}} = attributes, %{entity_id: id}) do
-      for m <- mems, do: m |> Group.new_leader(hd)
-      for i <- invs, do: id |> Group.kick(i) # wont make it before termination!
+      for m <- mems, do: m |> Group.new_leader(hd, invs)
       {:ok, Map.delete(attributes, Leader)}
     end
   end
@@ -173,15 +180,15 @@ defmodule Entice.Logic.Group do
 
 
     # if leader id and my id are the same, make me leader
-    def handle_event({:group_new_leader, id}, %{Member => %Member{}} = attributes, %{entity_id: id} = state) do
-      Entity.put_behaviour(id, LeaderBehaviour, [])
+    def handle_event({:group_new_leader, id, invs}, %{Member => %Member{}} = attributes, %{entity_id: id} = state) do
+      Entity.put_behaviour(id, LeaderBehaviour, %{invited: invs})
       Entity.remove_behaviour(id, MemberBehaviour)
       {:ok, attributes, state}
     end
 
 
     # if someone else is the leader, then just reassign to that entity
-    def handle_event({:group_new_leader, leader_id}, %{Member => %Member{}} = attributes, %{entity_id: id} = state) do
+    def handle_event({:group_new_leader, leader_id, _invs}, %{Member => %Member{}} = attributes, %{entity_id: id} = state) do
       id |> Group.self_assign(leader_id)
       {:ok, Map.put(attributes, Member, %Member{leader: leader_id}), state}
     end
