@@ -6,12 +6,13 @@ defmodule Entice.Logic.Area do
   defmap Lobby
 
   # Outposts...
-  defmap HeroesAscent,      spawn: %Coord{x: 2017, y: -3241}
-  defmap RandomArenas,      spawn: %Coord{x: 3854, y: 3874}
-  defmap TeamArenas,        spawn: %Coord{x: -1873, y: 352}
+  defmap HeroesAscent, spawn: %Coord{x: 2017, y: -3241}
+  defmap RandomArenas, spawn: %Coord{x: 3854, y: 3874}
+  defmap TeamArenas,   spawn: %Coord{x: -1873, y: 352}
 
   # Explorables...
-  defmap IsleOfTheNameless, spawn: %Coord{x: -5271, y: 16740}, outpost: false
+  defmap GreatTempleOfBalthazar, spawn: %Coord{x: -18867, y: -14299}, outpost: false # faked for testing purpose
+  defmap IsleOfTheNameless,      spawn: %Coord{x: -5271, y: 16740}, outpost: false
 
 
   def default_area, do: HeroesAscent
