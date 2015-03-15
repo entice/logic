@@ -1,5 +1,5 @@
-%{"entice_entity": {:git, "git://github.com/entice/entity.git", "88ca59ed636b321796f508273414358e9aa2a8a6", [ref: "88ca59ed636b321796f508273414358e9aa2a8a6"]},
-  "entice_skill": {:git, "git://github.com/entice/skill.git", "e663fc81868977c0deb6c322a4953d9a098411bf", [ref: "e663fc81868977c0deb6c322a4953d9a098411bf"]},
-  "entice_utils": {:git, "git://github.com/entice/utils.git", "4b743c4fe22eb4934221e69da2f50800347bcf32", [ref: "4b743c4fe22eb4934221e69da2f50800347bcf32"]},
+%{"entice_entity": {:git, "git://github.com/entice/entity.git", "05846160142df4d8c20b19b5aca55b9ba748d973", [ref: "05846160142df4d8c20b19b5aca55b9ba748d973"]},
+  "entice_skill": {:git, "git://github.com/entice/skill.git", "952c8f8ea2a36fb566f2813ffdd1813325142af8", [ref: "952c8f8ea2a36fb566f2813ffdd1813325142af8"]},
+  "entice_utils": {:git, "git://github.com/entice/utils.git", "6fc57359f452589b2ea1326f1343d6f8935f4245", [ref: "6fc57359f452589b2ea1326f1343d6f8935f4245"]},
   "inflex": {:hex, :inflex, "0.2.9"},
   "uuid": {:hex, :uuid, "0.1.5"}}

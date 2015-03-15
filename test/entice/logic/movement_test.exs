@@ -1,63 +1,62 @@
 defmodule Entice.Logic.MovementTest do
   use ExUnit.Case
-  use Entice.Logic.Attributes
   alias Entice.Entity
-  alias Entice.Logic.Movement, as: Move
+  alias Entice.Utils.Geom.Coord
+  alias Entice.Logic.Movement
+  alias Entice.Logic.Attributes.Position
 
 
   setup do
-    {:ok, eid, _pid} = Entity.start
-    {:ok, [entity_id: eid]}
+    {:ok, _id, pid} = Entity.start
+    Movement.register(pid)
+    {:ok, [entity: pid]}
   end
 
 
-  test "init plain", %{entity_id: eid} do
-    Move.init(eid)
+  test "register plain", %{entity: pid} do
     m = %Movement{}
-    assert {:ok, ^m} = Entity.fetch_attribute(eid, Movement)
+    assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "init with position", %{entity_id: eid} do
-    Entity.put_attribute(eid, %Position{pos: %Coord{x: 42, y: 1337}})
-    Move.init(eid)
+  test "register with position", %{entity: pid} do
+    Movement.unregister(pid) # remove again, so we can add a new one
+    Entity.put_attribute(pid, %Position{pos: %Coord{x: 42, y: 1337}})
+    Movement.register(pid)
     m = %Movement{goal: %Coord{x: 42, y: 1337}}
-    assert {:ok, ^m} = Entity.fetch_attribute(eid, Movement)
+    assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "init with movement", %{entity_id: eid} do
-    Entity.put_attribute(eid, %Movement{goal: %Coord{x: 42, y: 1337}})
-    Move.init(eid)
+  test "register with movement", %{entity: pid} do
+    Movement.unregister(pid) # remove again, so we can add a new one
+    Entity.put_attribute(pid, %Movement{goal: %Coord{x: 42, y: 1337}})
+    Movement.register(pid)
     m = %Movement{goal: %Coord{x: 42, y: 1337}}
-    assert {:ok, ^m} = Entity.fetch_attribute(eid, Movement)
+    assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "change speed", %{entity_id: eid} do
-    Move.init(eid)
-    Move.change_speed(eid, 0.123)
-    assert {:ok, %Movement{speed: 0.123}} = Entity.fetch_attribute(eid, Movement)
+  test "change speed", %{entity: pid} do
+    Movement.change_speed(pid, 0.123)
+    assert {:ok, %Movement{speed: 0.123}} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "change type", %{entity_id: eid} do
-    Move.init(eid)
-    Move.change_move_type(eid, 8)
-    assert {:ok, %Movement{movetype: 8}} = Entity.fetch_attribute(eid, Movement)
+  test "change type", %{entity: pid} do
+    Movement.change_move_type(pid, 8)
+    assert {:ok, %Movement{movetype: 8}} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "change goal", %{entity_id: eid} do
-    Move.init(eid)
-    Move.change_goal(eid, %Coord{x: 42, y: 1337}, 13)
-    assert {:ok, %Movement{goal: %Coord{x: 42, y: 1337}, plane: 13}} = Entity.fetch_attribute(eid, Movement)
+  test "change goal", %{entity: pid} do
+    Movement.change_goal(pid, %Coord{x: 42, y: 1337}, 13)
+    assert {:ok, %Movement{goal: %Coord{x: 42, y: 1337}, plane: 13}} = Entity.fetch_attribute(pid, Movement)
   end
 
 
-  test "terminate", %{entity_id: eid} do
-    Move.init(eid)
-    Move.remove(eid)
-    assert :error = Entity.fetch_attribute(eid, Movement)
+  test "terminate", %{entity: pid} do
+    Movement.unregister(pid)
+    assert :error = Entity.fetch_attribute(pid, Movement)
   end
 end

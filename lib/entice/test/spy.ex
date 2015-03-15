@@ -4,22 +4,33 @@ defmodule Entice.Test.Spy do
   You can pass in your own process id and you will receive any
   event that occurs to the entity.
   """
-  use Entice.Entity.Behaviour
+  alias Entice.Entity
   alias Entice.Test.Spy
 
 
-  @doc """
-  Setup method, pid is your own pid and will be stored by the entity.
-  """
-  def inject_into(entity, pid) when is_pid(pid),
-  do: Entice.Entity.put_behaviour(entity, Spy, pid)
+  defstruct reporter: nil
 
 
-  def init(id, attributes, pid), do: {:ok, attributes, {id, pid}}
+  def register(entity, report_to) when is_pid(report_to),
+  do: Entity.put_behaviour(entity, Spy.Behaviour, report_to)
 
 
-  def handle_event(event, attributes, {id, pid}) do
-    send(pid, %{sender: id, event: event})
-    {:ok, attributes, {id, pid}}
+  def unregister(entity),
+  do: Entity.remove_behaviour(entity, Spy.Behaviour)
+
+
+  defmodule Behaviour do
+    use Entice.Entity.Behaviour
+
+    def init(entity, pid),
+    do: {:ok, entity |> put_attribute(%Spy{reporter: pid})}
+
+    def handle_event(event, %Entity{id: id, attributes: %{Spy => %Spy{reporter: pid}}} = entity) do
+      send(pid, %{sender: id, event: event})
+      {:ok, entity}
+    end
+
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(Spy)}
   end
 end

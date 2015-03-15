@@ -1,54 +1,47 @@
 defmodule Entice.Logic.Movement do
-  use Entice.Logic.Attributes
   alias Entice.Entity
-  alias Entice.Logic.Movement.MovementBehaviour
-
-  def init(entity_id),
-  do: Entity.put_behaviour(entity_id, MovementBehaviour, [])
-
-
-  def change_speed(entity_id, new_speed),
-  do: Entity.notify(entity_id, {:speed, new_speed})
+  alias Entice.Utils.Geom.Coord
+  alias Entice.Logic.Movement
+  alias Entice.Logic.Attributes.Position
 
 
-  def change_move_type(entity_id, new_type),
-  do: Entity.notify(entity_id, {:movetype, new_type})
+  defstruct goal: %Coord{}, plane: 1, movetype: 9, speed: 1.0
 
 
-  def change_goal(entity_id, new_goal, new_plane),
-  do: Entity.notify(entity_id, {:goal, new_goal, new_plane})
+  def register(entity),
+  do: Entity.put_behaviour(entity, Movement.Behaviour, [])
 
 
-  def remove(entity_id),
-  do: Entity.remove_behaviour(entity_id, MovementBehaviour)
+  def unregister(entity),
+  do: Entity.remove_behaviour(entity, Movement.Behaviour)
 
 
-  defmodule MovementBehaviour do
+  def change_speed(entity, new_speed),
+  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | speed: new_speed} end)
+
+
+  def change_move_type(entity, new_type),
+  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | movetype: new_type} end)
+
+
+  def change_goal(entity, new_goal, new_plane),
+  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | goal: new_goal, plane: new_plane} end)
+
+
+  defmodule Behaviour do
     use Entice.Entity.Behaviour
 
-    def init(id, %{Movement => _} = attributes, _args),
-    do: {:ok, attributes, %{entity_id: id}}
+    def init(%Entity{attributes: %{Movement => _}} = entity, _args),
+    do: {:ok, entity}
 
-    def init(id, %{Position => %Position{pos: pos}} = attributes, _args),
-    do: {:ok, Map.put(attributes, Movement, %Movement{goal: pos}), %{entity_id: id}}
+    def init(%Entity{attributes: %{Position => %Position{pos: pos}}} = entity, _args),
+    do: {:ok, entity |> put_attribute(%Movement{goal: pos})}
 
-    def init(id, attributes, _args),
-    do: {:ok, Map.put(attributes, Movement, %Movement{}), %{entity_id: id}}
-
-
-    def handle_event({:speed, new_speed}, %{Movement => move} = attributes, state),
-    do: {:ok, Map.put(attributes, Movement, %Movement{move | speed: new_speed}), state}
+    def init(entity, _args),
+    do: {:ok, entity |> put_attribute(%Movement{})}
 
 
-    def handle_event({:movetype, new_type}, %{Movement => move} = attributes, state),
-    do: {:ok, Map.put(attributes, Movement, %Movement{move | movetype: new_type}), state}
-
-
-    def handle_event({:goal, new_goal, new_plane}, %{Movement => move} = attributes, state),
-    do: {:ok, Map.put(attributes, Movement, %Movement{move | goal: new_goal, plane: new_plane}), state}
-
-
-    def terminate(_reason, attributes, _state),
-    do: {:ok, Map.delete(attributes, Movement)}
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(Movement)}
   end
 end
