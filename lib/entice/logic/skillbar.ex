@@ -38,8 +38,7 @@ defmodule Entice.Logic.SkillBar do
   defp from_skill_ids(skill_ids) when is_list(skill_ids) do
     %SkillBar{slots:
       skill_ids |> Enum.map(fn skill_id ->
-        {:ok, skill} = Skills.get_skill(skill_id)
-        skill
+        Skills.get_skill(skill_id)
       end)}
   end
 
