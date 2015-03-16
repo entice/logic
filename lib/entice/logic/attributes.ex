@@ -7,6 +7,7 @@ defmodule Entice.Logic.Attributes do
       alias Entice.Utils.Geom.Coord
       alias Entice.Logic.Attributes.Name
       alias Entice.Logic.Attributes.Position
+      alias Entice.Logic.Attributes.Map
       alias Entice.Logic.Attributes.Appearance
       alias Entice.Logic.Movement
       alias Entice.Logic.Group.Leader
