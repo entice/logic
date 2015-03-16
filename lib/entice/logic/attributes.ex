@@ -8,7 +8,7 @@ defmodule Entice.Logic.Attributes do
       alias Entice.Utils.Geom.Coord
       alias Entice.Logic.Player.Name
       alias Entice.Logic.Player.Position
-      alias Entice.Logic.Player.Map
+      alias Entice.Logic.Player.MapInstance
       alias Entice.Logic.Player.Appearance
       alias Entice.Logic.Movement
       alias Entice.Logic.Group.Leader

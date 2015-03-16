@@ -16,7 +16,7 @@ defmodule Entice.Logic.PlayerTest do
   test "correct register", %{entity: pid} do
     assert Entity.has_attribute?(pid, Name) == true
     assert Entity.has_attribute?(pid, Position) == true
-    assert Entity.has_attribute?(pid, Map) == true
+    assert Entity.has_attribute?(pid, MapInstance) == true
     assert Entity.has_attribute?(pid, Appearance) == true
   end
 
@@ -25,7 +25,7 @@ defmodule Entice.Logic.PlayerTest do
     Player.unregister(pid)
     assert Entity.has_attribute?(pid, Name) == false
     assert Entity.has_attribute?(pid, Position) == false
-    assert Entity.has_attribute?(pid, Map) == false
+    assert Entity.has_attribute?(pid, MapInstance) == false
     assert Entity.has_attribute?(pid, Appearance) == false
   end
 end

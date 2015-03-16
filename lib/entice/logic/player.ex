@@ -5,7 +5,6 @@ defmodule Entice.Logic.Player do
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
   alias Entice.Logic.Area
-  alias Entice.Logic.Player
 
 
   defmodule Name, do: defstruct(
@@ -14,7 +13,7 @@ defmodule Entice.Logic.Player do
   defmodule Position, do: defstruct(
     pos: %Coord{})
 
-  defmodule Map, do: defstruct(
+  defmodule MapInstance, do: defstruct(
     map: Area.default_map)
 
   defmodule Appearance, do: defstruct(
@@ -34,7 +33,7 @@ defmodule Entice.Logic.Player do
   def register(entity, map, name \\ "Unkown Entity", appearance \\ %Appearance{}) do
     entity |> Entity.put_attribute(%Name{name: name})
     entity |> Entity.put_attribute(%Position{pos: map.spawn})
-    entity |> Entity.put_attribute(%Map{map: map})
+    entity |> Entity.put_attribute(%MapInstance{map: map})
     entity |> Entity.put_attribute(appearance)
   end
 
@@ -42,16 +41,16 @@ defmodule Entice.Logic.Player do
   def unregister(entity) do
     entity |> Entity.remove_attribute(Name)
     entity |> Entity.remove_attribute(Position)
-    entity |> Entity.remove_attribute(Map)
+    entity |> Entity.remove_attribute(MapInstance)
     entity |> Entity.remove_attribute(Appearance)
   end
 
 
   def attributes(entity) do
-    %{Name       => entity |> Entity.get_attribute(Name),
-      Position   => entity |> Entity.get_attribute(Position),
-      Map        => entity |> Entity.get_attribute(Map),
-      Appearance => entity |> Entity.get_attribute(Appearance)}
+    %{Name        => entity |> Entity.get_attribute(Name),
+      Position    => entity |> Entity.get_attribute(Position),
+      MapInstance => entity |> Entity.get_attribute(MapInstance),
+      Appearance  => entity |> Entity.get_attribute(Appearance)}
   end
 
 
