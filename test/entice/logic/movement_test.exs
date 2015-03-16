@@ -3,7 +3,7 @@ defmodule Entice.Logic.MovementTest do
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
   alias Entice.Logic.Movement
-  alias Entice.Logic.Attributes.Position
+  alias Entice.Logic.Player.Position
 
 
   setup do

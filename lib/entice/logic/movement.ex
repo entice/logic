@@ -2,7 +2,7 @@ defmodule Entice.Logic.Movement do
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
   alias Entice.Logic.Movement
-  alias Entice.Logic.Attributes.Position
+  alias Entice.Logic.Player.Position
 
 
   defstruct goal: %Coord{}, plane: 1, movetype: 9, speed: 1.0
