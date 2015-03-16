@@ -4,18 +4,26 @@ defmodule Entice.Logic.SkillBar do
   alias Entice.Logic.SkillBar
 
 
-  defstruct slots: List.duplicate(Skills.NoSkill, 8)
+  defstruct(
+    slots: List.duplicate(Skills.NoSkill, 8),
+    casting_timer: nil)
 
 
-  def register(entity), do: Entity.put_attribute(entity, %SkillBar{})
 
+  def register(entity), do: register(entity, %SkillBar{})
 
   def register(entity, skill_ids) when is_list(skill_ids),
-  do: Entity.put_attribute(entity, from_skill_ids(skill_ids))
+  do: register(entity, from_skill_ids(skill_ids))
+
+  def register(entity, %SkillBar{} = skillbar),
+  do: Entity.put_behaviour(entity, SkillBar.Behaviour, skillbar)
 
 
   def unregister(entity),
-  do: Entity.remove_attribute(entity, SkillBar)
+  do: Entity.remove_behaviour(entity, SkillBar)
+
+
+  # External API
 
 
   def get_skills(entity) do
@@ -35,6 +43,13 @@ defmodule Entice.Logic.SkillBar do
   end
 
 
+  def cast_skill(entity, slot, callback),
+  do: Entity.call(entity, SkillBar.Behaviour, {:skillbar_cast_start, slot, callback})
+
+
+  # Internal
+
+
   defp from_skill_ids(skill_ids) when is_list(skill_ids) do
     %SkillBar{slots:
       skill_ids |> Enum.map(fn skill_id ->
@@ -45,4 +60,48 @@ defmodule Entice.Logic.SkillBar do
 
   defp to_skill_ids(%SkillBar{slots: skills}),
   do: skills |> Enum.map(fn skill -> skill.id end)
+
+
+  defmodule Behaviour do
+    use Entice.Entity.Behaviour
+
+
+    def init(entity, %SkillBar{} = skillbar),
+    do: {:ok, entity |> put_attribute(skillbar)}
+
+
+    def handle_call(
+        {:skillbar_cast_start, slot, callback},
+        %Entity{attributes: %{SkillBar => %SkillBar{slots: slots, casting_timer: nil}}} = entity) do
+
+      {:ok, skill} = slots |> Enum.fetch(slot)
+      new_timer = self |> Process.send_after({:skillbar_cast_end, slot, callback}, skill.cast_time)
+      {:ok, :ok, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: new_timer} end)}
+    end
+
+
+    def handle_call(
+        {:skillbar_cast_start, _slot, _callback},
+        %Entity{attributes: %{SkillBar => %SkillBar{casting_timer: timer}}} = entity)
+    when not is_nil(timer) do
+      {:ok, {:error, :still_casting}, entity}
+    end
+
+
+    def handle_call(event, entity), do: super(event, entity)
+
+
+    def handle_event(
+        {:skillbar_cast_end, slot, callback},
+        %Entity{attributes: %{SkillBar => %SkillBar{slots: slots, casting_timer: timer}}} = entity)
+    when not is_nil(timer) do
+      {:ok, skill} = slots |> Enum.fetch(slot)
+      callback.({:skill_cast_end, skill})
+      {:ok, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: nil} end)}
+    end
+
+
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(SkillBar)}
+  end
 end
