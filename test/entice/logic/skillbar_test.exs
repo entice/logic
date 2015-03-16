@@ -30,7 +30,7 @@ defmodule Entice.Logic.SkillBarTest do
 
   test "cast skill", %{entity_id: eid} do
     this = self
-    assert :ok = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:ok, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
 
     assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}
     assert_receive {:skill_cast_end, Skills.NoSkill}
@@ -41,7 +41,7 @@ defmodule Entice.Logic.SkillBarTest do
     assert [1,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 1) # switch to healing signet
 
     this = self
-    assert :ok                      = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:ok, _skill}            = SkillBar.cast_skill(eid, 0, &(send this, &1))
     assert {:error, :still_casting} = SkillBar.cast_skill(eid, 0, &(send this, &1))
 
     assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}, 2100

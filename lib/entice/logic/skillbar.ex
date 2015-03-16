@@ -76,7 +76,7 @@ defmodule Entice.Logic.SkillBar do
 
       {:ok, skill} = slots |> Enum.fetch(slot)
       new_timer = self |> Process.send_after({:skillbar_cast_end, slot, callback}, skill.cast_time)
-      {:ok, :ok, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: new_timer} end)}
+      {:ok, {:ok, skill}, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: new_timer} end)}
     end
 
 
