@@ -10,4 +10,8 @@ defmodule Entice.Logic.AreaTest do
     assert TeamArenas.is_outpost? == true
     assert IsleOfTheNameless.is_outpost? == false
   end
+
+  test "default area" do
+    assert HeroesAscent = Area.default_map
+  end
 end

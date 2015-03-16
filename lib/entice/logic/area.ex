@@ -15,7 +15,7 @@ defmodule Entice.Logic.Area do
   defmap IsleOfTheNameless,      spawn: %Coord{x: -6036, y: -2519}, outpost: false
 
 
-  def default_area, do: HeroesAscent
+  def default_map, do: HeroesAscent
 
   @doc """
   Adds an alias for all defined maps when 'used'.

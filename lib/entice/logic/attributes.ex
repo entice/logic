@@ -1,5 +1,6 @@
 defmodule Entice.Logic.Attributes do
   alias Entice.Utils.Geom.Coord
+  alias Entice.Logic.Area
 
   defmacro __using__(_) do
     quote do
@@ -19,6 +20,9 @@ defmodule Entice.Logic.Attributes do
 
   defmodule Position, do: defstruct(
     pos: %Coord{})
+
+  defmodule Map, do: defstruct(
+    map: Area.default_map)
 
   defmodule Appearance, do: defstruct(
     profession: 1,
