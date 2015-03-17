@@ -96,7 +96,7 @@ defmodule Entice.Logic.SkillBar do
         %Entity{attributes: %{SkillBar => %SkillBar{slots: slots, casting_timer: timer}}} = entity)
     when not is_nil(timer) do
       {:ok, skill} = slots |> Enum.fetch(slot)
-      callback.({:skill_cast_end, skill})
+      callback.(skill)
       {:ok, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: nil} end)}
     end
 

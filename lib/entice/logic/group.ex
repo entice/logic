@@ -171,13 +171,13 @@ defmodule Entice.Logic.Group do
     do: {:ok, entity |> update_attribute(Leader, fn l -> %Leader{l | members: mems -- [sender_id]} end)}
 
 
-    def terminate(:remove_handler, %Entity{attributes: %{Leader => %Leader{members: [], invited: invs}}} = entity) do
+    def terminate(_reason, %Entity{attributes: %{Leader => %Leader{members: [], invited: invs}}} = entity) do
       for i <- invs, do: entity.id |> Group.kick(i)
       {:ok, entity |> remove_attribute(Leader)}
     end
 
 
-    def terminate(:remove_handler, %Entity{attributes: %{Leader => %Leader{members: [hd | _] = mems, invited: invs}}} = entity) do
+    def terminate(_reason, %Entity{attributes: %{Leader => %Leader{members: [hd | _] = mems, invited: invs}}} = entity) do
       for m <- mems, do: m |> Group.new_leader(hd, invs)
       {:ok, entity |> remove_attribute(Leader)}
     end
@@ -224,7 +224,7 @@ defmodule Entice.Logic.Group do
     end
 
 
-    def terminate(:remove_handler, %Entity{attributes: %{Member => %Member{leader: leader_id}}} = entity) do
+    def terminate(_reason, %Entity{attributes: %{Member => %Member{leader: leader_id}}} = entity) do
       entity.id |> Group.leave(leader_id)
       {:ok, entity |> remove_attribute(Member)}
     end
