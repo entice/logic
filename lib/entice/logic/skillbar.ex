@@ -73,10 +73,14 @@ defmodule Entice.Logic.SkillBar do
     def handle_call(
         {:skillbar_cast_start, slot, callback},
         %Entity{attributes: %{SkillBar => %SkillBar{slots: slots, casting_timer: nil}}} = entity) do
-
       {:ok, skill} = slots |> Enum.fetch(slot)
-      new_timer = self |> Process.send_after({:skillbar_cast_end, slot, callback}, skill.cast_time)
-      {:ok, {:ok, skill}, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: new_timer} end)}
+      {response, new_timer} =
+        if (skill.cast_time > 0) do
+          {:normal, self |> Process.send_after({:skillbar_cast_end, slot, callback}, skill.cast_time)}
+        else
+          {:instant, nil}
+        end
+      {:ok, {:ok, response, skill}, entity |> update_attribute(SkillBar, fn s -> %SkillBar{s | casting_timer: new_timer} end)}
     end
 
 

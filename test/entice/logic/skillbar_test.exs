@@ -28,12 +28,23 @@ defmodule Entice.Logic.SkillBarTest do
   end
 
 
-  test "cast skill", %{entity_id: eid} do
-    this = self
-    assert {:ok, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+  test "cast skill w/ casttime", %{entity_id: eid} do
+    assert [1,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 1) # switch to healing signet
 
-    assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}
-    assert_receive Skills.NoSkill
+    this = self
+    assert {:ok, :normal, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+
+    assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}, 2100
+    assert_receive Skills.HealingSignet
+  end
+
+
+  test "cast skill w/o casttime", %{entity_id: eid} do
+    this = self
+    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+
+    refute_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _callback}}
+    refute_receive Skills.NoSkill
   end
 
 
@@ -41,10 +52,11 @@ defmodule Entice.Logic.SkillBarTest do
     assert [1,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 1) # switch to healing signet
 
     this = self
-    assert {:ok, _skill}            = SkillBar.cast_skill(eid, 0, &(send this, &1))
-    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:ok, :normal, _skill}   = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 0, &(send this, &1)) # with casttime > 0
+    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 1, &(send this, &1)) # with casttime = 0
 
-    assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}, 2100
+    assert_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _callback}}, 2100
     assert_receive Skills.HealingSignet
   end
 end
