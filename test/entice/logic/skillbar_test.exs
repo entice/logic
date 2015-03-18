@@ -28,35 +28,79 @@ defmodule Entice.Logic.SkillBarTest do
   end
 
 
-  test "cast skill w/ casttime", %{entity_id: eid} do
-    assert [1,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 1) # switch to healing signet
+  test "cast/recharge skill w/ casttime + rechargetime", %{entity_id: eid} do
+    assert [3,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 3) # switch to signet of capture
 
     this = self
-    assert {:ok, :normal, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:ok, :normal, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
 
-    assert_receive %{sender: ^eid, event: {:skillbar_cast_end,   0, _callback}}, 2100
-    assert_receive Skills.HealingSignet
+    assert_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _cast_callback, _recharge_callback}}, 2100
+    assert_receive Skills.SignetOfCapture
+
+    assert_receive %{sender: ^eid, event: {:skillbar_recharge_end, 0, _callback}}, 2100
+    assert_receive Skills.SignetOfCapture
   end
 
 
-  test "cast skill w/o casttime", %{entity_id: eid} do
+  test "cast/recharge skill w/o casttime w/o rechargetime", %{entity_id: eid} do
     this = self
-    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1))
+    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
 
-    refute_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _callback}}
+    refute_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _cast_callback, _recharge_callback}}
+    refute_receive Skills.NoSkill
+
+    refute_receive %{sender: ^eid, event: {:skillbar_recharge_end, 0, _recharge_callback}}
     refute_receive Skills.NoSkill
   end
 
 
-  test "not cast skill when already casting", %{entity_id: eid} do
-    assert [1,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 1) # switch to healing signet
+  test "cast/recharge skill w casttime w/o rechargetime", %{entity_id: eid} do
+    assert [2,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 2) # switch to resurrection signet
 
     this = self
-    assert {:ok, :normal, _skill}   = SkillBar.cast_skill(eid, 0, &(send this, &1))
-    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 0, &(send this, &1)) # with casttime > 0
-    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 1, &(send this, &1)) # with casttime = 0
+    assert {:ok, :normal, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
 
-    assert_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _callback}}, 2100
-    assert_receive Skills.HealingSignet
+    assert_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _cast_callback, _recharge_callback}}, 3100
+    assert_receive Skills.ResurrectionSignet
+
+    refute_receive %{sender: ^eid, event: {:skillbar_recharge_end, 0, _recharge_callback}}
+    refute_receive Skills.ResurrectionSignet
+  end
+
+
+  test "cast/recharge skill w/o casttime w rechargetime", %{entity_id: eid} do
+    assert [11,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 11) # switch to distortion
+
+    this = self
+    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+
+    refute_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _cast_callback, _recharge_callback}}
+    refute_receive Skills.Distortion
+
+    assert_receive %{sender: ^eid, event: {:skillbar_recharge_end, 0, _recharge_callback}}, 8100
+    assert_receive Skills.Distortion
+  end
+
+
+  test "not cast skill when already casting", %{entity_id: eid} do
+    assert [3,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 3) # switch to signet of capture
+
+    this = self
+    assert {:ok, :normal, _skill}   = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1)) # with casttime > 0
+    assert {:error, :still_casting} = SkillBar.cast_skill(eid, 1, &(send this, &1), &(send this, &1)) # with casttime = 0
+
+    assert_receive %{sender: ^eid, event: {:skillbar_cast_end, 0, _cast_callback, _recharge_callback}}, 2100
+    assert_receive Skills.SignetOfCapture
+  end
+
+
+  test "not cast same skill when recharging, but others", %{entity_id: eid} do
+    assert [6,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 6) # switch to mantra of earth
+
+    this = self
+    assert {:ok, :instant, _skill}     = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+    assert {:error, :still_recharging} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+    assert {:ok, :instant, _skill}     = SkillBar.cast_skill(eid, 1, &(send this, &1), &(send this, &1))
   end
 end
