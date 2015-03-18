@@ -37,15 +37,9 @@ defmodule Entice.Logic.MovementTest do
   end
 
 
-  test "change speed", %{entity: pid} do
-    Movement.change_speed(pid, 0.123)
-    assert {:ok, %Movement{speed: 0.123}} = Entity.fetch_attribute(pid, Movement)
-  end
-
-
-  test "change type", %{entity: pid} do
-    Movement.change_move_type(pid, 8)
-    assert {:ok, %Movement{movetype: 8}} = Entity.fetch_attribute(pid, Movement)
+  test "change type / velocity", %{entity: pid} do
+    Movement.change_move_type(pid, 8, 0.5)
+    assert {:ok, %Movement{movetype: 8, velocity: 0.5}} = Entity.fetch_attribute(pid, Movement)
   end
 
 

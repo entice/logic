@@ -5,7 +5,11 @@ defmodule Entice.Logic.Movement do
   alias Entice.Logic.Player.Position
 
 
-  defstruct goal: %Coord{}, plane: 1, movetype: 9, speed: 1.0
+  @doc """
+  Note that velocity is actually a coefficient for the real velocity thats used inside
+  the client, but for simplicities sake we used velocity as a name.
+  """
+  defstruct goal: %Coord{}, plane: 1, movetype: 9, velocity: 1.0
 
 
   def register(entity),
@@ -16,16 +20,12 @@ defmodule Entice.Logic.Movement do
   do: Entity.remove_behaviour(entity, Movement.Behaviour)
 
 
-  def change_speed(entity, new_speed),
-  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | speed: new_speed} end)
-
-
-  def change_move_type(entity, new_type),
-  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | movetype: new_type} end)
-
-
   def change_goal(entity, new_goal, new_plane),
   do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | goal: new_goal, plane: new_plane} end)
+
+
+  def change_move_type(entity, new_type, new_velocity),
+  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | movetype: new_type, velocity: new_velocity} end)
 
 
   defmodule Behaviour do
