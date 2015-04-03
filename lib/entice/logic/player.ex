@@ -26,31 +26,49 @@ defmodule Entice.Logic.Player do
     hairstyle: 7,
     face: 30)
 
+  defmodule Health, do: defstruct(
+    health: 500)
 
-  @doc """
-  Prepares a single, simple player
-  """
+  defmodule Energy, do: defstruct(
+    mana: 50)
+
+
+  @doc "Prepares a single, simple player"
   def register(entity, map, name \\ "Unkown Entity", appearance \\ %Appearance{}) do
-    entity |> Entity.put_attribute(%Name{name: name})
-    entity |> Entity.put_attribute(%Position{pos: map.spawn})
-    entity |> Entity.put_attribute(%MapInstance{map: map})
-    entity |> Entity.put_attribute(appearance)
+    entity |> Entity.attribute_transaction(fn (attrs) ->
+      attrs
+      |> Map.put(Name, %Name{name: name})
+      |> Map.put(Position, %Position{pos: map.spawn})
+      |> Map.put(MapInstance, %MapInstance{map: map})
+      |> Map.put(Appearance, appearance)
+      |> Map.put(Health, %Health{})
+      |> Map.put(Energy, %Energy{})
+    end)
   end
 
 
+  @doc "Removes all player attributes from the entity"
   def unregister(entity) do
-    entity |> Entity.remove_attribute(Name)
-    entity |> Entity.remove_attribute(Position)
-    entity |> Entity.remove_attribute(MapInstance)
-    entity |> Entity.remove_attribute(Appearance)
+    entity |> Entity.attribute_transaction(fn (attrs) ->
+      attrs
+      |> Map.delete(Name)
+      |> Map.delete(Position)
+      |> Map.delete(MapInstance)
+      |> Map.delete(Appearance)
+      |> Map.delete(Health)
+      |> Map.delete(Energy)
+    end)
   end
 
 
+  @doc "Returns all player related attributes as an attribute map"
   def attributes(entity) do
     %{Name        => entity |> Entity.get_attribute(Name),
       Position    => entity |> Entity.get_attribute(Position),
       MapInstance => entity |> Entity.get_attribute(MapInstance),
-      Appearance  => entity |> Entity.get_attribute(Appearance)}
+      Appearance  => entity |> Entity.get_attribute(Appearance),
+      Health      => entity |> Entity.get_attribute(Health),
+      Energy      => entity |> Entity.get_attribute(Energy)}
   end
 
 

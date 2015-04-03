@@ -10,6 +10,8 @@ defmodule Entice.Logic.Attributes do
       alias Entice.Logic.Player.Position
       alias Entice.Logic.Player.MapInstance
       alias Entice.Logic.Player.Appearance
+      alias Entice.Logic.Player.Health
+      alias Entice.Logic.Player.Energy
       alias Entice.Logic.Movement
       alias Entice.Logic.Group.Leader
       alias Entice.Logic.Group.Member
