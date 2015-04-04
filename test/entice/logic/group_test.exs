@@ -54,6 +54,7 @@ defmodule Entice.Logic.GroupTest do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [^e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}    = Entity.fetch_attribute(e2, Leader)
@@ -65,6 +66,7 @@ defmodule Entice.Logic.GroupTest do
 
     assert_receive %{sender: ^e4, event: {:group_invite, ^e1}}
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [^e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}    = Entity.fetch_attribute(e2, Leader)
@@ -74,6 +76,7 @@ defmodule Entice.Logic.GroupTest do
   test "merging", %{e1: e1, e2: e2, e3: e3, e4: e4} do
     e1 |> Group.invite(e2)
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     e2 |> Group.invite(e1)
     assert_receive %{sender: ^e1, event: {:group_invite, ^e2}}
@@ -105,6 +108,7 @@ defmodule Entice.Logic.GroupTest do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}   = Entity.fetch_attribute(e2, Leader)
@@ -124,6 +128,7 @@ defmodule Entice.Logic.GroupTest do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}   = Entity.fetch_attribute(e2, Leader)
@@ -142,6 +147,7 @@ defmodule Entice.Logic.GroupTest do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}   = Entity.fetch_attribute(e2, Leader)
@@ -160,6 +166,7 @@ defmodule Entice.Logic.GroupTest do
     e1 |> Group.invite(e2)
 
     assert_receive %{sender: ^e2, event: {:group_invite, ^e1}}
+    assert_receive %{sender: ^e1, event: {:group_invite_ack, ^e2}}
 
     assert {:ok, %Leader{invited: [e2]}} = Entity.fetch_attribute(e1, Leader)
     assert {:ok, %Leader{invited: []}}   = Entity.fetch_attribute(e2, Leader)

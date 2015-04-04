@@ -130,7 +130,7 @@ defmodule Entice.Logic.Group do
 
     def handle_event({:group_invite, sender_id}, %Entity{id: id, attributes: %{Leader => %Leader{invited: invs}}} = entity)
     when sender_id != id do
-      if sender_id in invs and Entity.has_attribute?(sender_id, Leader) do
+      if sender_id in invs do
         sender_id |> Group.new_leader(id, invs)
       else
         id |> Group.invite_ack(sender_id)

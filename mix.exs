@@ -13,8 +13,8 @@ defmodule Entice.Logic.Mixfile do
   end
 
   defp deps do
-    [{:entice_entity, github: "entice/entity", ref: "02765f83b5de23bb93e6b8aa75da7fd93d6e8611"},
-     {:entice_skill, github: "entice/skill", ref: "fb2977285588bae2fb5559a641e9cf027cffef2e"},
+    [{:entice_entity, github: "entice/entity", ref: "2c7f0ea3ddec0a6c296599149bf8d04d25effe77"},
+     {:entice_skill, github: "entice/skill", ref: "df66becfdfa24dad4b7f09f03954328bb4d12ccc"},
      {:uuid, "~> 1.0"},
      {:inflex, "~> 1.0"}]
   end
