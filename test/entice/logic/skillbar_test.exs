@@ -1,9 +1,9 @@
 defmodule Entice.Logic.SkillBarTest do
   use ExUnit.Case
   alias Entice.Entity
+  alias Entice.Entity.Test.Spy
   alias Entice.Skills
   alias Entice.Logic.SkillBar
-  alias Entice.Test.Spy
 
 
   setup do

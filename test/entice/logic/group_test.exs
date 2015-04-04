@@ -1,10 +1,10 @@
 defmodule Entice.Logic.GroupTest do
   use ExUnit.Case
   alias Entice.Entity
+  alias Entice.Entity.Test.Spy
   alias Entice.Logic.Group
   alias Entice.Logic.Group.Leader
   alias Entice.Logic.Group.Member
-  alias Entice.Test.Spy
 
 
   setup do
