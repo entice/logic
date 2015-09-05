@@ -1,5 +1,5 @@
 defmodule Entice.Logic.MovementTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
   alias Entice.Logic.Movement

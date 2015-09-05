@@ -1,5 +1,5 @@
 defmodule Entice.Logic.AreaTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Entice.Logic.Area
 
   test "area api" do

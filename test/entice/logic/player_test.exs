@@ -1,5 +1,5 @@
 defmodule Entice.Logic.PlayerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Entice.Logic.Area
   use Entice.Logic.Attributes
   alias Entice.Entity
