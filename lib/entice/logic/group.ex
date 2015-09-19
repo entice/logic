@@ -5,11 +5,12 @@ defmodule Entice.Logic.Group do
   and one for members. These different behaviours react to the same events
   according to their nature.
   """
-  alias Entice.Entity
   alias Entice.Logic.Group.Leader
   alias Entice.Logic.Group.Member
   alias Entice.Logic.Group.LeaderBehaviour
   alias Entice.Logic.Group.MemberBehaviour
+  alias Entice.Entity.Coordination
+  alias Entice.Entity
 
 
   defmodule Leader, do: defstruct(
@@ -60,7 +61,7 @@ defmodule Entice.Logic.Group do
   If you invite someone, that someone will get the event and not you.
   """
   def invite(sender_id, target_id),
-  do: Entity.notify(target_id, {:group_invite, sender_id})
+  do: Coordination.notify(target_id, {:group_invite, sender_id})
 
 
   @doc """
@@ -69,8 +70,8 @@ defmodule Entice.Logic.Group do
   Only usable by a leader.
   """
   def kick(sender_id, target_id) do
-    Entity.notify(sender_id, {:group_kick, target_id})
-    Entity.notify(target_id, {:group_kick, sender_id})
+    Coordination.notify(sender_id, {:group_kick, target_id})
+    Coordination.notify(target_id, {:group_kick, sender_id})
   end
 
 
@@ -81,7 +82,7 @@ defmodule Entice.Logic.Group do
   Confirm that you got the invite, and that its valid (not that your taking it).
   """
   def invite_ack(sender_id, target_id),
-  do: Entity.notify(target_id, {:group_invite_ack, sender_id})
+  do: Coordination.notify(target_id, {:group_invite_ack, sender_id})
 
 
   @doc """
@@ -91,7 +92,7 @@ defmodule Entice.Logic.Group do
   (Used internally if invite was successful)
   """
   def new_leader(entity_id, leader_id, invs \\ []),
-  do: Entity.notify(entity_id, {:group_new_leader, leader_id, invs})
+  do: Coordination.notify(entity_id, {:group_new_leader, leader_id, invs})
 
 
   @doc """
@@ -100,14 +101,14 @@ defmodule Entice.Logic.Group do
   (Used internally if invite was successful)
   """
   def self_assign(sender_id, leader_id),
-  do: Entity.notify(leader_id, {:group_assign, sender_id})
+  do: Coordination.notify(leader_id, {:group_assign, sender_id})
 
 
   @doc """
   Leave a group, only works as a member.
   """
   def leave(member_id, leader_id),
-  do: Entity.notify(leader_id, {:group_leave, member_id})
+  do: Coordination.notify(leader_id, {:group_leave, member_id})
 
 
   # Actual behaviour implementation
@@ -197,7 +198,7 @@ defmodule Entice.Logic.Group do
 
 
     def handle_event({:group_invite, sender_id}, %Entity{attributes: %{Member => %Member{leader: leader_id}}} = entity) do
-      Entity.notify(leader_id, {:group_invite, sender_id}) # forward to actual group leader
+      Coordination.notify(leader_id, {:group_invite, sender_id}) # forward to actual group leader
       {:ok, entity}
     end
 

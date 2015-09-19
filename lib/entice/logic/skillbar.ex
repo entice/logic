@@ -45,7 +45,7 @@ defmodule Entice.Logic.SkillBar do
 
 
   def cast_skill(entity, slot, cast_callback, recharge_callback),
-  do: Entity.call(entity, SkillBar.Behaviour, {:skillbar_cast_start, slot, cast_callback, recharge_callback})
+  do: Entity.call_behaviour(entity, SkillBar.Behaviour, {:skillbar_cast_start, slot, cast_callback, recharge_callback})
 
 
   # Internal
