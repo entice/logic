@@ -82,6 +82,7 @@ defmodule Entice.Logic.SkillBar do
 
       case mana - skill.energy_cost do
         new_mana when new_mana < 0 -> {:ok, {:error, :not_enough_energy}, entity}
+        new_mana ->
           {response, new_entity} =
             case skillbar_cast_start(slot, skill, skill.cast_time, casting_timer, recharge_timer, cast_callback, recharge_callback) do
               {:ok, :normal, skill, timer}  -> {{{:ok, :normal, skill}, timer, nil}, update_entity_on_cast(entity, new_mana, timer, nil, slot)}
