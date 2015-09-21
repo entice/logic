@@ -108,19 +108,15 @@ defmodule Entice.Logic.SkillBarTest do
   test "cast skill with enough energy", %{entity_id: eid} do
     assert [6,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 6) # switch to mantra of earth
 
-    this = self
-
-    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+    assert {:ok, :instant, _skill} = SkillBar.cast_skill(eid, 0, &(&1), &(&1))
     calculated_mana = 50 - Skills.MantraOfEarth.energy_cost
-    assert %Energy{mana: calculated_mana} = Entity.get_attribute(eid, Energy)
+    assert %Energy{mana: ^calculated_mana} = Entity.get_attribute(eid, Energy)
   end
 
   test "not enough energy", %{entity_id: eid} do
     assert [6,0,0,0,0,0,0,0] = SkillBar.change_skill(eid, 0, 6) # switch to mantra of earth
 
-    this = self
-
     Entity.put_attribute(eid, %Energy{mana: 0})
-    assert {:error, :not_enough_energy} = SkillBar.cast_skill(eid, 0, &(send this, &1), &(send this, &1))
+    assert {:error, :not_enough_energy} = SkillBar.cast_skill(eid, 0, &(&1), &(&1))
   end
 end

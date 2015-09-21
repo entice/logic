@@ -94,8 +94,8 @@ defmodule Entice.Logic.SkillBar do
     end
 
     defp update_entity_on_cast(entity, new_mana, new_cast_timer, new_recharge_timer, slot) do
-      entity |> put_attribute(%Energy{mana: new_mana})
-                          |> update_attribute(SkillBar, fn s ->
+      entity  |> put_attribute(%Energy{mana: new_mana})
+              |> update_attribute(SkillBar, fn s ->
             %SkillBar{s | casting_timer: new_cast_timer, recharge_timers: s.recharge_timers |> List.replace_at(slot, new_recharge_timer)}
           end)
     end
