@@ -93,14 +93,8 @@ defmodule Entice.Logic.SkillBar do
       end
     end
 
-    defp update_entity_on_cast(entity, new_mana, new_cast_timer, new_recharge_timer, slot) do
-      entity  |> put_attribute(%Energy{mana: new_mana})
-              |> update_attribute(SkillBar, fn s ->
-            %SkillBar{s | casting_timer: new_cast_timer, recharge_timers: s.recharge_timers |> List.replace_at(slot, new_recharge_timer)}
-          end)
-    end
-
     def handle_call(event, entity), do: super(event, entity)
+
 
     def handle_event(
         {:skillbar_cast_end, slot, cast_callback, recharge_callback},
@@ -131,31 +125,41 @@ defmodule Entice.Logic.SkillBar do
     do: {:ok, entity |> remove_attribute(SkillBar)}
 
 
-    # internal
+    # Internal
 
 
-    def skillbar_cast_start(slot, skill, 0, nil, nil, _cast_callback, recharge_callback) do
+    defp skillbar_cast_start(slot, skill, 0, nil, nil, _cast_callback, recharge_callback) do
       timer = skillbar_recharge_start(slot, skill.recharge_time, nil, recharge_callback)
       {:ok, :instant, skill, timer}
     end
 
-    def skillbar_cast_start(slot, skill, cast_time, nil, nil, cast_callback, recharge_callback) do
+    defp skillbar_cast_start(slot, skill, cast_time, nil, nil, cast_callback, recharge_callback) do
       timer = self |> Process.send_after({:skillbar_cast_end, slot, cast_callback, recharge_callback}, cast_time)
       {:ok, :normal, skill, timer}
     end
 
-    def skillbar_cast_start(_slot, _skill, _cast_time, _casting_timer, nil, _cast_callback, _recharge_callback),
+    defp skillbar_cast_start(_slot, _skill, _cast_time, _casting_timer, nil, _cast_callback, _recharge_callback),
     do: {:error, :still_casting}
 
-    def skillbar_cast_start(_slot, _skill, _cast_time, _casting_timer, _recharge_timer, _cast_callback, _recharge_callback),
+    defp skillbar_cast_start(_slot, _skill, _cast_time, _casting_timer, _recharge_timer, _cast_callback, _recharge_callback),
     do: {:error, :still_recharging}
 
 
-    def skillbar_recharge_start(_slot, 0, nil, _recharge_callback), do: nil
+    defp update_entity_on_cast(entity, new_mana, new_cast_timer, new_recharge_timer, slot) do
+      entity
+      |> put_attribute(%Energy{mana: new_mana})
+      |> update_attribute(SkillBar,
+        fn s ->
+          %SkillBar{s | casting_timer: new_cast_timer, recharge_timers: s.recharge_timers |> List.replace_at(slot, new_recharge_timer)}
+        end)
+    end
 
-    def skillbar_recharge_start(slot, recharge_time, nil, recharge_callback),
+
+    defp skillbar_recharge_start(_slot, 0, nil, _recharge_callback), do: nil
+
+    defp skillbar_recharge_start(slot, recharge_time, nil, recharge_callback),
     do: self |> Process.send_after({:skillbar_recharge_end, slot, recharge_callback}, recharge_time)
 
-    def skillbar_recharge_start(_slot, _recharge_time, _recharge_timer, _recharge_callback), do: nil
+    defp skillbar_recharge_start(_slot, _recharge_time, _recharge_timer, _recharge_callback), do: nil
   end
 end
