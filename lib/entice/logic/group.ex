@@ -50,7 +50,7 @@ defmodule Entice.Logic.Group do
     my_leader = cond do
       Entity.has_attribute?(entity_id, Leader) -> entity_id
       Entity.has_attribute?(entity_id, Member) -> Entity.fetch_attribute!(entity_id, Member) |> Map.get(:leader)
-      _                                        -> nil
+      true                                     -> nil
     end
     my_leader == leader_id
   end
