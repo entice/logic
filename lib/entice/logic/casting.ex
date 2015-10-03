@@ -1,5 +1,6 @@
-defmodule Entice.Skill.Casting do
-  alias Entice.Skill.Casting
+defmodule Entice.Logic.Casting do
+  alias Entice.Logic.Casting
+  alias Entice.Logic.Player.Energy
   alias Entice.Entity.Coordination
 
 
@@ -15,7 +16,7 @@ defmodule Entice.Skill.Casting do
   do: entity |> Coordination.notify({:skill_cast_start, %{target: target, skill: skill}})
 
 
-  def change_entity(entity, i%{} = attributes),
+  def change_entity(entity, %{} = attributes),
   do: entity |> Entity.attribute_transaction(&Map.merge(&1, attributes))
 
 
@@ -31,8 +32,8 @@ defmodule Entice.Skill.Casting do
         new_mana ->
           case skill.effect_cast_start(entity, target) do
             {:error, reason} -> {:ok, {:error, reason}, entity}
-            {:ok, %Entity{} = entity, %Entity} = target} ->
-              target.id |> Entity.attribute_transaction(&Map.merge(&1, attributes))
+            {:ok, %Entity{} = entity, %Entity{} = target} ->
+              target.id |> Entity.attribute_transaction(&Map.merge(&1, target.attributes))
               {:ok, :ok, entity}
             result -> raise "Incorrect skill casting result:\nSkill: #{skill.id}\nResult: #{result}"
           end
