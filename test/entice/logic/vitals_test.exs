@@ -3,10 +3,14 @@ defmodule Entice.Logic.VitalsTest do
   use Entice.Logic.Attributes
   alias Entice.Entity
   alias Entice.Logic.Player
+  alias Entice.Logic.Vitals
 
   setup do
     {:ok, e1, _pid} = Entity.start
     {:ok, e2, _pid} = Entity.start
+
+    Vitals.register(e1)
+    Vitals.register(e2)
 
     Entity.put_attribute(e1, %Level{level: 20})
     Entity.put_attribute(e2, %Level{level: 3})

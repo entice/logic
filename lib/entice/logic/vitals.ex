@@ -1,8 +1,8 @@
 defmodule Entice.Logic.Vitals do
-  alias Entice.Entity
   @moduledoc """
   Responsible for the entities vital stats like (health, mana, regen, degen)
   """
+  alias Entice.Entity
 
   def register(entity_id),
   do: Entity.put_behaviour(entity_id, Vitals.Behaviour, [])
