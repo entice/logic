@@ -18,8 +18,7 @@ defmodule Entice.Logic.PlayerTest do
     assert Entity.has_attribute?(pid, Position) == true
     assert Entity.has_attribute?(pid, MapInstance) == true
     assert Entity.has_attribute?(pid, Appearance) == true
-    assert Entity.has_attribute?(pid, Health) == true
-    assert Entity.has_attribute?(pid, Energy) == true
+    assert Entity.has_attribute?(pid, Level) == true
   end
 
 
@@ -29,7 +28,6 @@ defmodule Entice.Logic.PlayerTest do
     assert Entity.has_attribute?(pid, Position) == false
     assert Entity.has_attribute?(pid, MapInstance) == false
     assert Entity.has_attribute?(pid, Appearance) == false
-    assert Entity.has_attribute?(pid, Health) == false
-    assert Entity.has_attribute?(pid, Energy) == false
+    assert Entity.has_attribute?(pid, Level) == false
   end
 end

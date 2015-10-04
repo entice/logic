@@ -50,8 +50,7 @@ defmodule Entice.Logic.Player do
       |> Map.delete(Position)
       |> Map.delete(MapInstance)
       |> Map.delete(Appearance)
-      |> Map.delete(Health)
-      |> Map.delete(Energy)
+      |> Map.delete(Level)
     end)
   end
 
