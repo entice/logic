@@ -42,10 +42,14 @@ defmodule Entice.Logic.Vitals do
     end
 
      #ToDo: Take care of Armor, Runes, Weapons...
-    defp calc_life_points_for_level(level) do: 100 + ((level - 1) * 20) # Dont add 20 lifePoints for level 1
+    defp calc_life_points_for_level(level) do
+      100 + ((level - 1) * 20) # Dont add 20 lifePoints for level1
+    end
 
     #ToDo: Take care of Armor, Runes, Weapons...
-    defp initMaxEnergy(entity) do: %Energy{mana: 70, max_mana: 70}
+    defp initMaxEnergy(entity) do
+      %Energy{mana: 70, max_mana: 70}
+    end
 
   end
 end
