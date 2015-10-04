@@ -11,10 +11,10 @@ defmodule Entice.Logic.Vitals do
   do: Entity.remove_behaviour(entity_id, Vitals.Behaviour)
 
   defmodule Health, do: defstruct(
-    actualHealth: 500, maxHealth: 620)
+    health: 500, max_health: 620)
 
   defmodule Energy, do: defstruct(
-    actualMana: 50, maxMana: 70)
+    mana: 50, max_mana: 70)
 
   #Internal 
 
@@ -38,18 +38,14 @@ defmodule Entice.Logic.Vitals do
     defp initMaxHealth(entity) do
       level = fetch_attribute(entity, Level)
       health = calc_life_points_for_level(level.level)
-      %Health{actualHealth: health, maxHealth: health}
+      %Health{health: health, max_health: health}
     end
 
      #ToDo: Take care of Armor, Runes, Weapons...
-    defp calc_life_points_for_level(level) do
-      100 + ((level - 1) * 20) # Dont add 20 lifePoints for level1
-    end
+    defp calc_life_points_for_level(level) do: 100 + ((level - 1) * 20) # Dont add 20 lifePoints for level 1
 
     #ToDo: Take care of Armor, Runes, Weapons...
-    defp initMaxEnergy(entity) do
-      %Energy{actualMana: 70, maxMana: 70}
-    end
+    defp initMaxEnergy(entity) do: %Energy{mana: 70, max_mana: 70}
 
   end
 end

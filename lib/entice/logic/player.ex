@@ -38,8 +38,6 @@ defmodule Entice.Logic.Player do
       |> Map.put(MapInstance, %MapInstance{map: map})
       |> Map.put(Appearance, appearance)
       |> Map.put(Level, %Level{level: 20})
-      #|> Map.put(Health, %Health{})
-      #|> Map.put(Energy, %Energy{})
     end)
   end
 
