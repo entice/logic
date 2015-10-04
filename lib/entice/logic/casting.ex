@@ -12,12 +12,9 @@ defmodule Entice.Logic.Casting do
   do: Entity.remove_behaviour(entity_id, Casting.Behaviour)
 
 
+  @doc "Will not deal with timing. Should be called by the Skillbar"
   def cast_skill(entity, target, skill),
   do: entity |> Coordination.notify({:skill_cast_start, %{target: target, skill: skill}})
-
-
-  def change_entity(entity, %{} = attributes),
-  do: entity |> Entity.attribute_transaction(&Map.merge(&1, attributes))
 
 
   defmodule Behaviour do
