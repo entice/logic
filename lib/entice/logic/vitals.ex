@@ -3,6 +3,7 @@ defmodule Entice.Logic.Vitals do
   Responsible for the entities vital stats like (health, mana, regen, degen)
   """
   alias Entice.Entity
+  alias Entice.Logic.Vitals
 
   def register(entity_id),
   do: Entity.put_behaviour(entity_id, Vitals.Behaviour, [])
@@ -36,7 +37,7 @@ defmodule Entice.Logic.Vitals do
     end
 
     defp initMaxHealth(entity) do
-      level = fetch_attribute(entity, Level)
+      {:ok, level} = fetch_attribute(entity, Level)
       health = calc_life_points_for_level(level.level)
       %Health{health: health, max_health: health}
     end
