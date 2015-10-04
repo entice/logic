@@ -2,7 +2,7 @@ defmodule Entice.Logic.SkillBar do
   alias Entice.Entity
   alias Entice.Skills
   alias Entice.Logic.SkillBar
-  alias Entice.Logic.Player.Energy
+  alias Entice.Logic.Vitals.Energy
 
 
   defstruct(
@@ -76,7 +76,7 @@ defmodule Entice.Logic.SkillBar do
         {:skillbar_cast_start, slot, cast_callback, recharge_callback},
         %Entity{attributes: %{
           SkillBar => %SkillBar{slots: slots, casting_timer: casting_timer, recharge_timers: recharge_timers},
-          Energy => %Energy{mana: mana}}} = entity) do
+          Energy => %Energy{actualMana: mana}}} = entity) do
       {:ok, skill}          = slots |> Enum.fetch(slot)
       {:ok, recharge_timer} = recharge_timers |> Enum.fetch(slot)
 
@@ -147,7 +147,7 @@ defmodule Entice.Logic.SkillBar do
 
     defp update_entity_on_cast(entity, new_mana, new_cast_timer, new_recharge_timer, slot) do
       entity
-      |> put_attribute(%Energy{mana: new_mana})
+      |> put_attribute(%Energy{actualMana: new_mana})
       |> update_attribute(SkillBar,
         fn s ->
           %SkillBar{s | casting_timer: new_cast_timer, recharge_timers: s.recharge_timers |> List.replace_at(slot, new_recharge_timer)}

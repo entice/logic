@@ -4,29 +4,52 @@ defmodule Entice.Logic.Vitals do
   Responsible for the entities vital stats like (health, mana, regen, degen)
   """
 
-  defmodule Health do: defstruct(
-    health: 50)
-
-  defmodule Mana do: defstruct(
-    mana: 50)
-
   def register(entity_id),
   do: Entity.put_behaviour(entity_id, Vitals.Behaviour, [])
 
   def unregister(entity_id),
   do: Entity.remove_behaviour(entity_id, Vitals.Behaviour)
 
+  defmodule Health, do: defstruct(
+    actualHealth: 500, maxHealth: 620)
+
+  defmodule Energy, do: defstruct(
+    actualMana: 50, maxMana: 70)
+
+  #Internal 
+
   defmodule Behaviour do
     use Entice.Entity.Behaviour
+    alias Entice.Logic.Vitals.Health
+    alias Entice.Logic.Vitals.Energy
+    alias Entice.Logic.Player.Level
 
     def init(entity, _args) do
-      entity |> put_attribute(%Health{health: Vitals.Health})
-             |> put_attribute(%Energy{mana: Vitals.Mana})
+      {:ok, entity |> put_attribute(initMaxHealth(entity))
+                   |> put_attribute(initMaxEnergy(entity))}
+
     end
 
     def terminate(entity, _args) do
-      entity |> remove_attribute(Energy)
-             |> remove_attribute(Health)
+      {:ok, entity |> remove_attribute(Health)
+                   |> remove_attribute(Energy)}
     end
+
+    defp initMaxHealth(entity) do
+      level = fetch_attribute(entity, Level)
+      health = calc_life_points_for_level(level.level)
+      %Health{actualHealth: health, maxHealth: health}
+    end
+
+     #ToDo: Take care of Armor, Runes, Weapons...
+    defp calc_life_points_for_level(level) do
+      100 + ((level - 1) * 20) # Dont add 20 lifePoints for level1
+    end
+
+    #ToDo: Take care of Armor, Runes, Weapons...
+    defp initMaxEnergy(entity) do
+      %Energy{actualMana: 70, maxMana: 70}
+    end
+
   end
 end
