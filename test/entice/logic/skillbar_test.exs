@@ -4,7 +4,7 @@ defmodule Entice.Logic.SkillBarTest do
   alias Entice.Entity.Test.Spy
   alias Entice.Skills
   alias Entice.Logic.SkillBar
-  alias Entice.Logic.Player.Energy
+  alias Entice.Logic.Vitals.Energy
 
   setup do
     {:ok, entity_id, _pid} = Entity.start

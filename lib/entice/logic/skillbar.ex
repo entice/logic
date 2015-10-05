@@ -2,7 +2,7 @@ defmodule Entice.Logic.SkillBar do
   alias Entice.Entity
   alias Entice.Skills
   alias Entice.Logic.SkillBar
-  alias Entice.Logic.Player.Energy
+  alias Entice.Logic.Vitals.Energy
 
 
   defstruct(
