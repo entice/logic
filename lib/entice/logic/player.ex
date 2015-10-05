@@ -11,7 +11,8 @@ defmodule Entice.Logic.Player do
     name: "Unknown Entity")
 
   defmodule Position, do: defstruct(
-    pos: %Coord{})
+    pos: %Coord{},
+    plane: 1)
 
   defmodule MapInstance, do: defstruct(
     map: Area.default_map)

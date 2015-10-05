@@ -21,9 +21,9 @@ defmodule Entice.Logic.MovementTest do
 
   test "register with position", %{entity: pid} do
     Movement.unregister(pid) # remove again, so we can add a new one
-    Entity.put_attribute(pid, %Position{pos: %Coord{x: 42, y: 1337}})
+    Entity.put_attribute(pid, %Position{pos: %Coord{x: 42, y: 1337}, plane: 7})
     Movement.register(pid)
-    m = %Movement{goal: %Coord{x: 42, y: 1337}}
+    m = %Movement{goal: %Coord{x: 42, y: 1337}, plane: 7}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
@@ -37,15 +37,12 @@ defmodule Entice.Logic.MovementTest do
   end
 
 
-  test "change type / velocity", %{entity: pid} do
-    Movement.change_move_type(pid, 8, 0.5)
-    assert {:ok, %Movement{movetype: 8, velocity: 0.5}} = Entity.fetch_attribute(pid, Movement)
-  end
-
-
-  test "change goal", %{entity: pid} do
-    Movement.change_goal(pid, %Coord{x: 42, y: 1337}, 13)
-    assert {:ok, %Movement{goal: %Coord{x: 42, y: 1337}, plane: 13}} = Entity.fetch_attribute(pid, Movement)
+  test "update", %{entity: pid} do
+    Movement.update(pid,
+      %Position{pos: %Coord{x: 42, y: 1337}, plane: 7},
+      %Movement{goal: %Coord{x: 1337, y: 42}, plane: 13, move_type: 5, velocity: 0.5})
+    assert {:ok, %Position{plane: 7}} = Entity.fetch_attribute(pid, Position)
+    assert {:ok, %Movement{move_type: 5}} = Entity.fetch_attribute(pid, Movement)
   end
 
 

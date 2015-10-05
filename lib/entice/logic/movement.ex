@@ -9,7 +9,7 @@ defmodule Entice.Logic.Movement do
   Note that velocity is actually a coefficient for the real velocity thats used inside
   the client, but for simplicities sake we used velocity as a name.
   """
-  defstruct goal: %Coord{}, plane: 1, movetype: 9, velocity: 1.0
+  defstruct goal: %Coord{}, plane: 1, move_type: 9, velocity: 1.0
 
 
   def register(entity),
@@ -20,12 +20,16 @@ defmodule Entice.Logic.Movement do
   do: Entity.remove_behaviour(entity, Movement.Behaviour)
 
 
-  def change_goal(entity, new_goal, new_plane),
-  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | goal: new_goal, plane: new_plane} end)
-
-
-  def change_move_type(entity, new_type, new_velocity),
-  do: Entity.update_attribute(entity, Movement, fn move -> %Movement{move | movetype: new_type, velocity: new_velocity} end)
+  def update(entity,
+      %Position{} = new_pos,
+      %Movement{} = new_movement) do
+    entity |> Entity.attribute_transaction(
+      fn attrs ->
+        attrs
+        |> Map.put(Position, new_pos)
+        |> Map.put(Movement, new_movement)
+      end)
+  end
 
 
   defmodule Behaviour do
@@ -34,8 +38,8 @@ defmodule Entice.Logic.Movement do
     def init(%Entity{attributes: %{Movement => _}} = entity, _args),
     do: {:ok, entity}
 
-    def init(%Entity{attributes: %{Position => %Position{pos: pos}}} = entity, _args),
-    do: {:ok, entity |> put_attribute(%Movement{goal: pos})}
+    def init(%Entity{attributes: %{Position => %Position{pos: pos, plane: plane}}} = entity, _args),
+    do: {:ok, entity |> put_attribute(%Movement{goal: pos, plane: plane})}
 
     def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Movement{})}
