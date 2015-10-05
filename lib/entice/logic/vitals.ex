@@ -26,8 +26,8 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Player.Level
 
     def init(entity, _args) do
-      {:ok, entity |> put_attribute(initMaxHealth(entity))
-                   |> put_attribute(initMaxEnergy(entity))}
+      {:ok, entity |> put_attribute(init_max_health(entity))
+                   |> put_attribute(init_max_energy(entity))}
 
     end
 
@@ -36,7 +36,7 @@ defmodule Entice.Logic.Vitals do
                    |> remove_attribute(Energy)}
     end
 
-    defp initMaxHealth(entity) do
+    defp init_max_health(entity) do
       {:ok, level} = fetch_attribute(entity, Level)
       health = calc_life_points_for_level(level.level)
       %Health{health: health, max_health: health}
@@ -48,7 +48,7 @@ defmodule Entice.Logic.Vitals do
     end
 
     #ToDo: Take care of Armor, Runes, Weapons...
-    defp initMaxEnergy(entity) do
+    defp init_max_energy(entity) do
       %Energy{mana: 70, max_mana: 70}
     end
 

@@ -9,11 +9,11 @@ defmodule Entice.Logic.VitalsTest do
     {:ok, e1, _pid} = Entity.start
     {:ok, e2, _pid} = Entity.start
 
-    Vitals.register(e1)
-    Vitals.register(e2)
-
     Entity.put_attribute(e1, %Level{level: 20})
     Entity.put_attribute(e2, %Level{level: 3})
+
+    Vitals.register(e1)
+    Vitals.register(e2)
 
     {:ok, [e1: e1, e2: e2]}
   end
@@ -27,7 +27,7 @@ defmodule Entice.Logic.VitalsTest do
   end
 
   test "check entity has health level 3", %{e2: e2} do
-    assert {:ok, %Health{health: 120, max_health: 120}} = Entity.fetch_attribute(e2, Health)
+    assert {:ok, %Health{health: 140, max_health: 140}} = Entity.fetch_attribute(e2, Health)
   end
 
   test "check entity has mana", %{e1: e1} do
