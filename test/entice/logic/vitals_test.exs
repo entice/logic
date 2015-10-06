@@ -2,8 +2,8 @@ defmodule Entice.Logic.VitalsTest do
   use ExUnit.Case, async: true
   use Entice.Logic.Attributes
   alias Entice.Entity
-  alias Entice.Logic.Player
   alias Entice.Logic.Vitals
+
 
   setup do
     {:ok, e1, _pid} = Entity.start
@@ -18,19 +18,30 @@ defmodule Entice.Logic.VitalsTest do
     {:ok, [e1: e1, e2: e2]}
   end
 
-  test "check entity has health", %{e1: e1} do
+
+  test "entity has health", %{e1: e1} do
     assert Entity.has_attribute?(e1, Health)
   end
 
-  test "check entity has health level 20", %{e1: e1} do
+
+  test "entity has health level 20", %{e1: e1} do
     assert {:ok, %Health{health: 480, max_health: 480}} = Entity.fetch_attribute(e1, Health)
   end
 
-  test "check entity has health level 3", %{e2: e2} do
+
+  test "entity has health level 3", %{e2: e2} do
     assert {:ok, %Health{health: 140, max_health: 140}} = Entity.fetch_attribute(e2, Health)
   end
 
-  test "check entity has mana", %{e1: e1} do
+
+  test "entity has mana", %{e1: e1} do
     assert Entity.has_attribute?(e1, Energy)
+  end
+
+
+  test "health & energy are removed on termination", %{e1: e1} do
+    Vitals.unregister(e1)
+    assert not Entity.has_attribute?(e1, Energy)
+    assert not Entity.has_attribute?(e1, Health)
   end
 end
