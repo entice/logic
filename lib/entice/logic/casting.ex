@@ -1,7 +1,20 @@
 defmodule Entice.Logic.Casting do
+  @moduledoc """
+  This handles the casting process of arbitrary skills.
+  Does not validate if an entity has the skills unlocked or w/e.
+  Keeps a timer for casting, and an association from
+  skill -> recharge-timer.
+  """
   alias Entice.Logic.Casting
-  alias Entice.Logic.Player.Energy
+  alias Entice.Logic.Vitals.Energy
+  alias Entice.Entity
   alias Entice.Entity.Coordination
+
+
+  defstruct(
+    casting_timer: nil,
+    after_cast_timer: nil,
+    recharge_timers: %{})
 
 
   def register(entity_id),
@@ -12,9 +25,12 @@ defmodule Entice.Logic.Casting do
   do: Entity.remove_behaviour(entity_id, Casting.Behaviour)
 
 
-  @doc "Will not deal with timing. Should be called by the Skillbar"
-  def cast_skill(entity, target, skill),
-  do: entity |> Coordination.notify({:skill_cast_start, %{target: target, skill: skill}})
+  @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
+  def cast_skill(entity, skill) when is_atom(skill),
+  do: entity |> Entity.call_behaviour({:skill_cast_start, %{target: nil, skill: skill}})
+
+  def cast_skill(entity, target, skill) when is_atom(skill),
+  do: entity |> Entity.call_behaviour({:skill_cast_start, %{target: target, skill: skill}})
 
 
   defmodule Behaviour do
