@@ -4,21 +4,10 @@ defmodule Entice.Logic.Npc do
   """
 
   alias Entice.Entity
-  alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.Area
-
-  defmodule Name, do: defstruct(
-    name: "Dhuum")
-
-  defmodule Position, do: defstruct(
-    pos: %Coord{},
-    plane: 1)
-
-  defmodule MapInstance, do: defstruct(
-    map: Area.default_map)
-
-  defmodule Level, do: defstruct(
-    level: 20)
+  alias Entice.Logic.Player.Name
+  alias Entice.Logic.Player.Position
+  alias Entice.Logic.Player.MapInstance
+  alias Entice.Logic.Player.Level
 
   defmodule NpcAppearance, do: defstruct(
     npc_model_id: "dhuum")
