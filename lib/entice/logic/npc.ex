@@ -2,18 +2,16 @@ defmodule Entice.Logic.Npc do
   @moduledoc """
   Responsible for the basic player stats.
   """
-
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
   alias Entice.Logic.Player.MapInstance
   alias Entice.Logic.Player.Level
 
-  defmodule NpcAppearance, do: defstruct(
-    npc_model_id: "dhuum")
+  defstruct(npc_model_id: :dhuum)
 
   @doc "Prepares a single, simple player"
-  def register(entity, map, name \\ "Dhuum", appearance \\ %NpcAppearance{}) do
+  def register(entity, map, name \\ "Dhuum") do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
       |> Map.put(Name, %Name{name: name})
@@ -32,7 +30,6 @@ defmodule Entice.Logic.Npc do
       |> Map.delete(Name)
       |> Map.delete(Position)
       |> Map.delete(MapInstance)
-      |> Map.delete(NpcAppearance)
       |> Map.delete(Level)
     end)
   end
