@@ -1,7 +1,4 @@
 defmodule Entice.Logic.Npc do 
-  @moduledoc """
-  Responsible for the basic player stats.
-  """
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
