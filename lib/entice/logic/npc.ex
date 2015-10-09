@@ -4,17 +4,18 @@ defmodule Entice.Logic.Npc do
   alias Entice.Logic.Player.Position
   alias Entice.Logic.Player.MapInstance
   alias Entice.Logic.Player.Level
+  alias Entice.Logic.Npc
 
   defstruct(npc_model_id: :dhuum)
 
   @doc "Prepares a single, simple player"
-  def register(entity, map, name \\ "Dhuum") do
+  def register(entity, map, name \\ "Dhuum", npc \\ %Npc{}) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
       |> Map.put(Name, %Name{name: name})
       |> Map.put(Position, %Position{pos: map.spawn})
       |> Map.put(MapInstance, %MapInstance{map: map})
-      |> Map.put(NpcAppearance, appearance)
+      |> Map.put(Npc, npc)
       |> Map.put(Level, %Level{level: 20})
     end)
   end
@@ -27,12 +28,13 @@ defmodule Entice.Logic.Npc do
       |> Map.delete(Name)
       |> Map.delete(Position)
       |> Map.delete(MapInstance)
+      |> Map.delete(Npc)
       |> Map.delete(Level)
     end)
   end
 
   @doc "Returns all player related attributes as an attribute map"
   def attributes(entity),
-  do: Entity.take_attributes(entity, [Name, Position, MapInstance, NpcAppearance, Level])
+  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Level, Npc])
 
 end
