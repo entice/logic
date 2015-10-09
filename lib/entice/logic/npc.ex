@@ -1,4 +1,5 @@
-defmodule Entice.Logic.Npc do 
+defmodule Entice.Logic.Npc do
+  use Entice.Logic.Area
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
@@ -6,9 +7,21 @@ defmodule Entice.Logic.Npc do
   alias Entice.Logic.Player.Level
   alias Entice.Logic.Npc
 
+
   defstruct(npc_model_id: :dhuum)
 
-  @doc "Prepares a single, simple player"
+
+  # TODO remove when we have maps
+  @doc "Temporarily here. Should be replaced by map-based implementation... load from DB?"
+  def spawn_all do
+    for map <- Area.get_maps do
+      {:ok, id, _pid} = Entity.start()
+      Npc.register(id, map, "Me does nothing :3")
+    end
+    :ok
+  end
+
+
   def register(entity, map, name \\ "Dhuum", npc \\ %Npc{}) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
@@ -21,7 +34,6 @@ defmodule Entice.Logic.Npc do
   end
 
 
-  @doc "Removes all player attributes from the entity"
   def unregister(entity) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
@@ -33,8 +45,7 @@ defmodule Entice.Logic.Npc do
     end)
   end
 
-  @doc "Returns all player related attributes as an attribute map"
+
   def attributes(entity),
   do: Entity.take_attributes(entity, [Name, Position, MapInstance, Level, Npc])
-
 end
