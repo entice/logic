@@ -1,4 +1,5 @@
 %{"entice_entity": {:git, "git://github.com/entice/entity.git", "abd47e4bf5cc97d69c0c332d9559c63718348c0e", [ref: "abd47e4bf5cc97d69c0c332d9559c63718348c0e"]},
   "entice_utils": {:git, "git://github.com/entice/utils.git", "45fa9369284f92857c4436251a6b995c5d014680", [ref: "45fa9369284f92857c4436251a6b995c5d014680"]},
   "inflex": {:hex, :inflex, "1.5.0"},
+  "pipe": {:git, "git://github.com/batate/elixir-pipes.git", "0e046b108c5c758dd007a235d3adce89eeeab8d8", []},
   "uuid": {:hex, :uuid, "1.0.1"}}

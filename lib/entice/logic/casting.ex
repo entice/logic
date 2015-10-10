@@ -8,51 +8,115 @@ defmodule Entice.Logic.Casting do
   alias Entice.Logic.Casting
   alias Entice.Logic.Vitals.Energy
   alias Entice.Entity
-  alias Entice.Entity.Coordination
+  use Pipe
 
 
   defstruct(
-    casting_timer: nil,
+    casting_timer: nil,  #Why not call this cast_timer if skill has a cast_time ? or vice versa
     after_cast_timer: nil,
     recharge_timers: %{})
 
-
   def register(entity_id),
-  do: Entity.put_behaviour(entity_id, Casting.Behaviour, [])
-
+  do: Entity.put_behaviour(entity_id, Casting.Behaviour, %Casting{})
 
   def unregister(entity_id),
-  do: Entity.remove_behaviour(entity_id, Casting.Behaviour)
-
+  do: Entity.remove_behaviour(entity_id, Casting)
 
   @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
   def cast_skill(entity, skill) when is_atom(skill),
-  do: entity |> Entity.call_behaviour({:skill_cast_start, %{target: nil, skill: skill}})
+  do: entity |> Entity.call_behaviour(Casting.Behaviour, {:cast_start, nil, nil, %{target: nil, skill: skill}})
 
   def cast_skill(entity, target, skill) when is_atom(skill),
-  do: entity |> Entity.call_behaviour({:skill_cast_start, %{target: target, skill: skill}})
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, nil, nil, %{target: target, skill: skill}})
 
 
   defmodule Behaviour do
     use Entice.Entity.Behaviour
 
-    def handle_call(
-        {:skill_cast_start, %{target: target, skill: skill}},
-        %Entity{attributes: %{Energy => %Energy{mana: mana}}} = entity) do
+    def init(entity, %Casting{} = casting),
+    do: {:ok, entity |> put_attribute(casting)}
 
-      case mana - skill.energy_cost do
-        new_mana when new_mana < 0 -> {:ok, {:error, :not_enough_energy}, entity}
-        new_mana ->
-          case skill.effect_cast_start(entity, target) do
-            {:error, reason} -> {:ok, {:error, reason}, entity}
-            {:ok, %Entity{} = entity, %Entity{} = target} ->
-              target.id |> Entity.attribute_transaction(&Map.merge(&1, target.attributes))
-              {:ok, :ok, entity}
-            result -> raise "Incorrect skill casting result:\nSkill: #{skill.id}\nResult: #{result}"
-          end
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(Casting)}
+
+    def handle_call({:cast_start, cast_callback, recharge_callback, %{target: _target, skill: skill}}, %Entity{attributes: %{
+      Casting => %Casting{recharge_timers: _recharge_timers},
+      Energy => %Energy{mana: mana}}} = entity) do
+
+      response = can_cast?(skill, entity)
+      entity = case response do
+        {:ok, _} ->
+          entity
+          |> reduce_mana(mana - skill.energy_cost)
+          #Start the casting_timer
+          cast_start(skill.cast_time, skill, cast_callback, recharge_callback)
+          entity
+        _ -> entity
+      end
+
+      {:ok, response, entity}
+    end
+
+    @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
+    def handle_event({:cast_end, skill, cast_callback, recharge_callback}, entity) do
+      cast_callback.(skill)
+      recharge_start(skill.recharge_time, skill, recharge_callback)
+      recharge_timers = Map.update(entity.recharge_timers, skill, skill.recharge_time)
+      {:ok, entity |> update_attribute(Casting, fn s -> %Casting{s | casting_timer: nil, recharge_timers: recharge_timers} end)}
+    end
+
+    @doc "This event triggers when a skill's recharge period ends, it resets the recharge timer for the skill."
+    def handle_event({:recharge_end, skill, _recharge_callback}, entity) do
+      recharge_timers = Map.remove(entity.recharge_timers, skill)
+      {:ok, entity |> update_attribute(Casting, fn s -> %Casting{s | recharge_timers: recharge_timers} end)}
+    end
+
+    def handle_event({:after_cast_end, _skill, _recharge_callback}, entity) do
+      {:ok, entity |> update_attribute(Casting, fn s -> %Casting{s | after_cast_timer: nil} end)}
+    end
+
+    defp reduce_mana(entity, new_mana) do
+      Entity.update_attribute(entity, Energy, fn e -> %Energy{e | mana: new_mana} end)
+    end
+
+    #EVENT TRIGGERS
+
+    #Waits for #cast_time milliseconds then triggers the cast_end event.
+    defp cast_start(cast_time, skill, cast_callback, recharge_callback), #We take cast_time as arg rather than use skill.cast_time in case we want to modify it before
+    do: self |> Process.send_after({:skillbar_cast_end, skill, cast_callback, recharge_callback}, cast_time)
+
+    #Waits for #recharge_time milliseconds then triggers the recharge_end event.
+    defp recharge_start(recharge_time, skill, recharge_callback),
+    do: self |> Process.send_after({:skillbar_recharge_end, skill, recharge_callback}, recharge_time)
+
+    #CAST CONDITIONS
+    defp enough_energy?({:ok, skill}, dmana) when dmana > 0, do: {:ok, skill}
+    defp enough_energy?({:ok, _skill}, _dmana), do: {:error, :not_enough_energy}
+
+    defp not_recharging?({:ok, skill}, nil = _recharge_timer), do: {:ok, skill}
+    defp not_recharging?(_skill, _recharge_timer), do: {:error, :still_recharging}
+
+    defp not_casting?({:ok, skill}, nil = _casting_timer, nil = _after_cast_timer), do: {:ok, skill}
+    defp not_casting?(_skill, _casting_timer, _after_cast_timer), do: {:error, :still_casting}
+
+    defp can_cast?(skill,  %Entity{attributes: %{
+      Casting => %Casting{casting_timer: casting_timer, after_cast_timer: after_cast_timer, recharge_timers: recharge_timers},
+      Energy => %Energy{mana: mana}}} = _entity) do
+
+      case skill.cast_time do
+        cast_time when cast_time == 0 ->
+          pipe_matching {:ok, _},
+          {:ok, skill}
+          |> enough_energy?(mana - skill.energy_cost)
+          |> not_recharging?(recharge_timers[skill])
+        _cast_time ->
+          pipe_matching {:ok, _},
+          {:ok, skill}
+          |> enough_energy?(mana - skill.energy_cost)
+          |> not_recharging?(recharge_timers[skill])
+          |> not_casting?(casting_timer, after_cast_timer)
       end
     end
 
-    def handle_call(event, entity), do: super(event, entity)
   end
 end
