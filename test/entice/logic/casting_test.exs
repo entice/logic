@@ -56,13 +56,13 @@ defmodule Entice.Logic.CastingTest do
     assert {:ok, Skills.SignetOfCapture} = Casting.cast_skill(eid, Skills.SignetOfCapture, &(send this, &1), &(send this, &1))
 
     #Check appropriate events happen at appropriate times
-    assert_receive %{sender: ^eid, event: {:cast_end, Skills.SignetOfCapture, _cast_callback, _recharge_callback}}, 3500
+    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, _cast_callback, _recharge_callback}}, 3500
     assert_receive Skills.SignetOfCapture
     assert nil != Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil != Entity.get_attribute(eid, Casting).after_cast_timer
 
-    assert_receive %{sender: ^eid, event: {:after_cast_end}}, 350
-    assert_receive %{sender: ^eid, event: {:recharge_end, Skills.SignetOfCapture, _recharge_callback}}, 2100
+    assert_receive %{sender: ^eid, event: {:casting_after_cast_end}}, 350
+    assert_receive %{sender: ^eid, event: {:casting_recharge_end, Skills.SignetOfCapture, _recharge_callback}}, 2100
     assert_receive Skills.SignetOfCapture
 
     #Check Casting returned to initial state

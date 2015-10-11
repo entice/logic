@@ -24,10 +24,10 @@ defmodule Entice.Logic.Casting do
 
   @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
   def cast_skill(entity, skill, cast_callback, recharge_callback) when is_atom(skill),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, cast_callback, recharge_callback, %{target: nil, skill: skill}})
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, cast_callback, recharge_callback, %{target: nil, skill: skill}})
 
   def cast_skill(entity, target, skill, cast_callback, recharge_callback) when is_atom(skill),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, cast_callback, recharge_callback, %{target: target, skill: skill}})
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, cast_callback, recharge_callback, %{target: target, skill: skill}})
 
 
   defmodule Behaviour do
@@ -36,7 +36,7 @@ defmodule Entice.Logic.Casting do
     def init(entity, %Casting{} = casting),
     do: {:ok, entity |> put_attribute(casting)}
 
-    def handle_call({:cast_start, cast_callback, recharge_callback, %{target: _target, skill: skill}}, %Entity{attributes: %{
+    def handle_call({:casting_cast_start, cast_callback, recharge_callback, %{target: _target, skill: skill}}, %Entity{attributes: %{
       Casting => %Casting{recharge_timers: _recharge_timers},
       Energy => %Energy{mana: mana}}} = entity) do
 
@@ -56,7 +56,7 @@ defmodule Entice.Logic.Casting do
     def handle_call(event, entity), do: super(event, entity)
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:cast_end, skill, cast_callback, recharge_callback}, entity) do
+    def handle_event({:casting_cast_end, skill, cast_callback, recharge_callback}, entity) do
       recharge_timer = recharge_start(skill.recharge_time, skill, recharge_callback)
       after_cast_timer = after_cast_start(250) #Dunno how to define constants
       cast_callback.(skill)
@@ -69,17 +69,13 @@ defmodule Entice.Logic.Casting do
     end
 
     @doc "This event triggers when a skill's recharge period ends, it resets the recharge timer for the skill."
-    def handle_event({:recharge_end, skill, recharge_callback}, entity) do
+    def handle_event({:casting_recharge_end, skill, recharge_callback}, entity) do
       recharge_callback.(skill)
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: c.recharge_timers |> Map.delete(skill)} end)}
     end
 
-    def handle_event({:after_cast_end}, entity) do
+    def handle_event({:casting_after_cast_end}, entity) do
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | after_cast_timer: nil} end)}
-    end
-
-    def handle_event({:test_message_1}, entity) do
-      {:ok, entity}
     end
 
     def terminate(_reason, entity),
@@ -93,16 +89,16 @@ defmodule Entice.Logic.Casting do
 
     #Waits for #cast_time milliseconds then triggers the cast_end event.
     defp cast_start(cast_time, skill, cast_callback, recharge_callback)  do #We take cast_time as arg rather than use skill.cast_time in case we want to modify it before
-      self |> Process.send_after({:cast_end, skill, cast_callback, recharge_callback}, cast_time)
+      self |> Process.send_after({:casting_cast_end, skill, cast_callback, recharge_callback}, cast_time)
     end
 
     #Waits for #recharge_time milliseconds then triggers the recharge_end event.
     defp recharge_start(recharge_time, skill, recharge_callback) do
-      self |> Process.send_after({:recharge_end, skill, recharge_callback}, recharge_time)
+      self |> Process.send_after({:casting_recharge_end, skill, recharge_callback}, recharge_time)
     end
 
     defp after_cast_start(after_cast_time) do
-      self |> Process.send_after({:after_cast_end}, after_cast_time)
+      self |> Process.send_after({:casting_after_cast_end}, after_cast_time)
     end
 
     #CAST CONDITIONS
