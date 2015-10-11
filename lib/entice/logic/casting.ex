@@ -23,11 +23,11 @@ defmodule Entice.Logic.Casting do
   do: Entity.remove_behaviour(entity_id, Casting)
 
   @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
-  def cast_skill(entity, skill) when is_atom(skill),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, nil, nil, %{target: nil, skill: skill}})
+  def cast_skill(entity, skill, cast_callback, recharge_callback) when is_atom(skill),
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, cast_callback, recharge_callback, %{target: nil, skill: skill}})
 
-  def cast_skill(entity, target, skill) when is_atom(skill),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, nil, nil, %{target: target, skill: skill}})
+  def cast_skill(entity, target, skill, cast_callback, recharge_callback) when is_atom(skill),
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:cast_start, cast_callback, recharge_callback, %{target: target, skill: skill}})
 
 
   defmodule Behaviour do
@@ -56,9 +56,10 @@ defmodule Entice.Logic.Casting do
     def handle_call(event, entity), do: super(event, entity)
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:cast_end, skill, _cast_callback, recharge_callback}, entity) do
+    def handle_event({:cast_end, skill, cast_callback, recharge_callback}, entity) do
       recharge_timer = recharge_start(skill.recharge_time, skill, recharge_callback)
       after_cast_timer = after_cast_start(250) #Dunno how to define constants
+      cast_callback.(skill)
       {:ok, entity |> update_attribute(Casting,
         fn c ->
           %Casting{c | casting_timer: nil,
@@ -68,7 +69,8 @@ defmodule Entice.Logic.Casting do
     end
 
     @doc "This event triggers when a skill's recharge period ends, it resets the recharge timer for the skill."
-    def handle_event({:recharge_end, skill, _recharge_callback}, entity) do
+    def handle_event({:recharge_end, skill, recharge_callback}, entity) do
+      recharge_callback.(skill)
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: c.recharge_timers |> Map.delete(skill)} end)}
     end
 
