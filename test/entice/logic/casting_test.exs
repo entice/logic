@@ -54,27 +54,18 @@ defmodule Entice.Logic.CastingTest do
 
   @tag id: 3, casting: true
   test "cast skill succesfully", %{entity_id: eid} do
-
     assert {:ok, Skills.SignetOfCapture} = Casting.cast_skill(eid, Skills.SignetOfCapture)
 
+    #Check appropriate events happen at appropriate times
     assert_receive %{sender: ^eid, event: {:cast_end, Skills.SignetOfCapture, nil, nil}}, 2100
-    assert_receive %{sender: ^eid, event: {:recharge_end, Skills.SignetOfCapture, nil}}, 4200
-    #Following asserts will fail
-    #assert nil = Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
-    #assert nil = Entity.get_attribute(eid, Casting).casting_timer
-    #assert nil = Entity.get_attribute(eid, Casting).after_cast_timer
+    assert nil != Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
+    assert nil != Entity.get_attribute(eid, Casting).after_cast_timer
+    assert_receive %{sender: ^eid, event: {:after_cast_end}}, 350
+    assert_receive %{sender: ^eid, event: {:recharge_end, Skills.SignetOfCapture, nil}}, 2100
 
-
-
-    #calculated_mana = 50 - Skills.MantraOfEarth.energy_cost
-    #assert %Energy{mana: ^calculated_mana} = Entity.get_attribute(eid, Energy) #Can't seem to figure out that bug
-  end
-
-  @tag id: 4, casting: true
-  test "cast non instantaneous skill succesfully", %{entity_id: eid} do
-
-    assert {:ok, Skills.HealingSignet} = Casting.cast_skill(eid, Skills.HealingSignet)
-    #calculated_mana = 50 - Skills.HealingSignet.energy_cost
-    #assert %Energy{mana: ^calculated_mana} = Entity.get_attribute(eid, Energy) #Can't seem to figure out that bug
+    #Check Casting returned to initial state
+    assert nil = Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
+    assert nil = Entity.get_attribute(eid, Casting).casting_timer
+    assert nil = Entity.get_attribute(eid, Casting).after_cast_timer
   end
 end
