@@ -35,7 +35,7 @@ defmodule Entice.Logic.CastingTest do
   test "won't cast already casting", %{entity_id: eid} do
 
     #Test with casting timer != nil
-    Entity.update_attribute(eid, Casting, fn c -> %Casting{c | casting_timer: 10} end)
+    Entity.update_attribute(eid, Casting, fn c -> %Casting{c | cast_timer: 10} end)
     assert {:error, :still_casting} = Casting.cast_skill(eid, Skills.HealingSignet, &(send self, &1), &(send self, &1))
     Entity.update_attribute(eid, Casting, fn _c -> %Casting{} end)
 
@@ -45,7 +45,7 @@ defmodule Entice.Logic.CastingTest do
     Entity.update_attribute(eid, Casting, fn _c -> %Casting{} end)
 
     #Test with both != nil
-    Entity.update_attribute(eid, Casting, fn c -> %Casting{c | casting_timer: 10, after_cast_timer: 10} end)
+    Entity.update_attribute(eid, Casting, fn c -> %Casting{c | cast_timer: 10, after_cast_timer: 10} end)
     assert {:error, :still_casting} = Casting.cast_skill(eid, Skills.HealingSignet, &(send self, &1), &(send self, &1))
     Entity.update_attribute(eid, Casting, fn _c -> %Casting{} end)
   end
@@ -67,7 +67,7 @@ defmodule Entice.Logic.CastingTest do
 
     #Check Casting returned to initial state
     assert nil = Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
-    assert nil = Entity.get_attribute(eid, Casting).casting_timer
+    assert nil = Entity.get_attribute(eid, Casting).cast_timer
     assert nil = Entity.get_attribute(eid, Casting).after_cast_timer
   end
 end

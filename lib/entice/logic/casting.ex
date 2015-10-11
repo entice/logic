@@ -12,7 +12,7 @@ defmodule Entice.Logic.Casting do
 
 
   defstruct(
-    casting_timer: nil,  #Why not call this cast_timer if skill has a cast_time ? or vice versa
+    cast_timer: nil,  #Why not call this cast_timer if skill has a cast_time ? or vice versa
     after_cast_timer: nil,
     recharge_timers: %{})
 
@@ -45,7 +45,7 @@ defmodule Entice.Logic.Casting do
         {:ok, _} ->
           timer = cast_start(skill.cast_time, skill, cast_callback, recharge_callback)
           entity
-          |> update_attribute(Casting, fn c -> %Casting{c | casting_timer: timer} end)
+          |> update_attribute(Casting, fn c -> %Casting{c | cast_timer: timer} end)
           |> reduce_mana(mana - skill.energy_cost)
         _ -> entity
       end
@@ -62,7 +62,7 @@ defmodule Entice.Logic.Casting do
       cast_callback.(skill)
       {:ok, entity |> update_attribute(Casting,
         fn c ->
-          %Casting{c | casting_timer: nil,
+          %Casting{c | cast_timer: nil,
           after_cast_timer: after_cast_timer,
           recharge_timers: c.recharge_timers |> Map.put(skill, recharge_timer)}
         end)}
@@ -102,17 +102,9 @@ defmodule Entice.Logic.Casting do
     end
 
     #CAST CONDITIONS
-    defp enough_energy?({:ok, skill}, dmana) when dmana > 0, do: {:ok, skill}
-    defp enough_energy?({:ok, _skill}, _dmana), do: {:error, :not_enough_energy}
-
-    defp not_recharging?({:ok, skill}, nil = _recharge_timer), do: {:ok, skill}
-    defp not_recharging?(_skill, _recharge_timer), do: {:error, :still_recharging}
-
-    defp not_casting?({:ok, skill}, nil = _casting_timer, nil = _after_cast_timer), do: {:ok, skill}
-    defp not_casting?(_skill, _casting_timer, _after_cast_timer), do: {:error, :still_casting}
 
     defp can_cast?(skill,  %Entity{attributes: %{
-      Casting => %Casting{casting_timer: casting_timer, after_cast_timer: after_cast_timer, recharge_timers: recharge_timers},
+      Casting => %Casting{cast_timer: cast_timer, after_cast_timer: after_cast_timer, recharge_timers: recharge_timers},
       Energy => %Energy{mana: mana}}} = _entity) do
 
       case skill.cast_time do
@@ -126,9 +118,18 @@ defmodule Entice.Logic.Casting do
           {:ok, skill}
           |> enough_energy?(mana - skill.energy_cost)
           |> not_recharging?(recharge_timers[skill])
-          |> not_casting?(casting_timer, after_cast_timer)
+          |> not_casting?(cast_timer, after_cast_timer)
       end
     end
+
+    defp enough_energy?({:ok, skill}, dmana) when dmana > 0, do: {:ok, skill}
+    defp enough_energy?({:ok, _skill}, _dmana), do: {:error, :not_enough_energy}
+
+    defp not_recharging?({:ok, skill}, nil = _recharge_timer), do: {:ok, skill}
+    defp not_recharging?(_skill, _recharge_timer), do: {:error, :still_recharging}
+
+    defp not_casting?({:ok, skill}, nil = _cast_timer, nil = _after_cast_timer), do: {:ok, skill}
+    defp not_casting?(_skill, _cast_timer, _after_cast_timer), do: {:error, :still_casting}
 
   end
 end
