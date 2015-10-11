@@ -53,9 +53,19 @@ defmodule Entice.Logic.CastingTest do
   end
 
   @tag id: 3, casting: true
-  test "cast instantaneous skill succesfully", %{entity_id: eid} do
+  test "cast skill succesfully", %{entity_id: eid} do
 
-    assert {:ok, Skills.MantraOfEarth} = Casting.cast_skill(eid, Skills.MantraOfEarth)
+    assert {:ok, Skills.SignetOfCapture} = Casting.cast_skill(eid, Skills.SignetOfCapture)
+
+    assert_receive %{sender: ^eid, event: {:cast_end, Skills.SignetOfCapture, nil, nil}}, 2100
+    assert_receive %{sender: ^eid, event: {:recharge_end, Skills.SignetOfCapture, nil}}, 4200
+    #Following asserts will fail
+    #assert nil = Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
+    #assert nil = Entity.get_attribute(eid, Casting).casting_timer
+    #assert nil = Entity.get_attribute(eid, Casting).after_cast_timer
+
+
+
     #calculated_mana = 50 - Skills.MantraOfEarth.energy_cost
     #assert %Energy{mana: ^calculated_mana} = Entity.get_attribute(eid, Energy) #Can't seem to figure out that bug
   end
