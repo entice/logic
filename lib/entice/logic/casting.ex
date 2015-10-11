@@ -36,9 +36,6 @@ defmodule Entice.Logic.Casting do
     def init(entity, %Casting{} = casting),
     do: {:ok, entity |> put_attribute(casting)}
 
-    def terminate(_reason, entity),
-    do: {:ok, entity |> remove_attribute(Casting)}
-
     def handle_call({:cast_start, cast_callback, recharge_callback, %{target: _target, skill: skill}}, %Entity{attributes: %{
       Casting => %Casting{recharge_timers: _recharge_timers},
       Energy => %Energy{mana: mana}}} = entity) do
@@ -46,11 +43,10 @@ defmodule Entice.Logic.Casting do
       response = can_cast?(skill, entity)
       entity = case response do
         {:ok, _} ->
-          entity
-          |> reduce_mana(mana - skill.energy_cost)
-          #Starts the casting_timer
           timer = cast_start(skill.cast_time, skill, cast_callback, recharge_callback)
-          entity |> update_attribute(Casting, fn c -> %Casting{c | casting_timer: timer} end)
+          entity
+          |> update_attribute(Casting, fn c -> %Casting{c | casting_timer: timer} end)
+          |> reduce_mana(mana - skill.energy_cost)
         _ -> entity
       end
 
@@ -60,25 +56,35 @@ defmodule Entice.Logic.Casting do
     def handle_call(event, entity), do: super(event, entity)
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:cast_end, skill, cast_callback, recharge_callback}, entity) do
-      #cast_callback.(skill)
-      timer = recharge_start(skill.recharge_time, skill, recharge_callback)
-      recharge_timers = Map.update(entity.Casting.recharge_timers, skill, timer)
-      {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | casting_timer: nil, recharge_timers: c.recharge_timers  |> Map.put(skill, skill.recharge_time)} end)}
+    def handle_event({:cast_end, skill, _cast_callback, recharge_callback}, entity) do
+      recharge_timer = recharge_start(skill.recharge_time, skill, recharge_callback)
+      after_cast_timer = after_cast_start(250) #Dunno how to define constants
+      {:ok, entity |> update_attribute(Casting,
+        fn c ->
+          %Casting{c | casting_timer: nil,
+          after_cast_timer: after_cast_timer,
+          recharge_timers: c.recharge_timers |> Map.put(skill, recharge_timer)}
+        end)}
     end
 
     @doc "This event triggers when a skill's recharge period ends, it resets the recharge timer for the skill."
     def handle_event({:recharge_end, skill, _recharge_callback}, entity) do
-      recharge_timers = Map.remove(entity.Casting.recharge_timers, skill)
-      {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: recharge_timers} end)}
+      {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: c.recharge_timers |> Map.delete(skill)} end)}
     end
 
     def handle_event({:after_cast_end}, entity) do
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | after_cast_timer: nil} end)}
     end
 
+    def handle_event({:test_message_1}, entity) do
+      {:ok, entity}
+    end
+
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(Casting)}
+
     defp reduce_mana(entity, new_mana) do
-      Entity.update_attribute(entity, Energy, fn e -> %Energy{e | mana: new_mana} end)
+      entity |> update_attribute(Energy, fn e -> %Energy{e | mana: new_mana} end)
     end
 
     #EVENT TRIGGERS
