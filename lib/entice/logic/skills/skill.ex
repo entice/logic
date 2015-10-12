@@ -23,9 +23,8 @@ defmodule Entice.Logic.Skill do
         def id, do: unquote(skillid)
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
-        def effect_cast_start(caster, target), do: {:ok, caster, target}
-        def effect_cast_finish(caster, target), do: {:ok, caster, target}
-        defoverridable [effect_cast_start: 2, effect_cast_finish: 2]
+        def apply_effect(caster, target), do: {:ok, caster, target}
+        defoverridable [apply_effect: 2]
         unquote(do_block)
       end
       # then update the stats
@@ -87,13 +86,8 @@ defmodule Entice.Logic.Skill.Behaviour do
   @doc "Energy cost of the skill in mana"
   defcallback energy_cost() :: integer
 
-  @doc "Is called after the skill casting started."
-  defcallback effect_cast_start(caster :: %Entity{}, target :: %Entity{}) ::
-    {:ok, caster :: %Entity{}, target :: %Entity{}} |
-    {:error, reason :: term}
-
   @doc "Is called after the casting finished."
-  defcallback effect_cast_finish(caster :: %Entity{}, target :: %Entity{}) ::
+  defcallback apply_effect(caster :: %Entity{}, target :: %Entity{}) ::
     {:ok, caster :: %Entity{}, target :: %Entity{}} |
     {:error, reason :: term}
 end
