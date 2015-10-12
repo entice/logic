@@ -58,7 +58,7 @@ defmodule Entice.Logic.Player do
 
   @doc "Returns all player related attributes as an attribute map"
   def attributes(entity),
-  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Appearance, Health, Energy])
+  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Appearance, Level])
 
 
   def set_appearance(entity, %Appearance{} = new_appear),
