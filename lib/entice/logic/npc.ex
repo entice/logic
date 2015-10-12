@@ -6,10 +6,9 @@ defmodule Entice.Logic.Npc do
   alias Entice.Logic.Player.MapInstance
   alias Entice.Logic.Player.Level
   alias Entice.Logic.Npc
-
+  alias Entice.Logic.Vitals
 
   defstruct(npc_model_id: :dhuum)
-
 
   # TODO remove when we have maps
   @doc "Temporarily here. Should be replaced by map-based implementation... load from DB?"
