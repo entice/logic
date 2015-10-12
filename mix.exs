@@ -4,7 +4,7 @@ defmodule Entice.Logic.Mixfile do
   def project do
     [app: :entice_logic,
      version: "0.0.1",
-     elixir: "~> 1.0",
+     elixir: "~> 1.1",
      deps: deps]
   end
 
@@ -13,9 +13,9 @@ defmodule Entice.Logic.Mixfile do
   end
 
   defp deps do
-    [{:entice_entity, github: "entice/entity", ref: "abd47e4bf5cc97d69c0c332d9559c63718348c0e"},
+    [{:entice_entity, github: "entice/entity", ref: "6d952892c56c2a8c636baca143e64f43c553e1b9"},
      {:uuid, "~> 1.0"},
-     {:inflex, "~> 1.0"},
-     {:pipe, github: "batate/elixir-pipes"}]
+     {:inflex, "~> 1.5"},
+     {:pipe, "~> 0.0.2"}]
   end
 end

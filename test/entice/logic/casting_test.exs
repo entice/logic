@@ -66,8 +66,8 @@ defmodule Entice.Logic.CastingTest do
     assert_receive Skills.SignetOfCapture
 
     #Check Casting returned to initial state
-    assert nil = Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
-    assert nil = Entity.get_attribute(eid, Casting).cast_timer
-    assert nil = Entity.get_attribute(eid, Casting).after_cast_timer
+    assert nil == Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
+    assert nil == Entity.get_attribute(eid, Casting).cast_timer
+    assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
   end
 end
