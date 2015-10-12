@@ -23,7 +23,7 @@ defmodule Entice.Logic.Skill do
         def id, do: unquote(skillid)
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
-        def apply_effect(caster, target), do: {:ok, caster, target}
+        def apply_effect(caster, target), do: :ok
         defoverridable [apply_effect: 2]
         unquote(do_block)
       end
@@ -87,7 +87,7 @@ defmodule Entice.Logic.Skill.Behaviour do
   defcallback energy_cost() :: integer
 
   @doc "Is called after the casting finished."
-  defcallback apply_effect(caster :: %Entity{}, target :: %Entity{}) ::
-    {:ok, caster :: %Entity{}, target :: %Entity{}} |
+  defcallback apply_effect(caster_entity_id :: term, target_entity_id :: term) ::
+    :ok |
     {:error, reason :: term}
 end

@@ -1,5 +1,7 @@
 defmodule Entice.Logic.Skills do
   use Entice.Logic.Skill
+  use Entice.Logic.Attributes
+  alias Entice.Entity
 
   defskill NoSkill, id: 0 do
     def description,   do: "Non-existing skill as a placeholder for empty skillbar slots."
@@ -34,6 +36,12 @@ defmodule Entice.Logic.Skills do
     def cast_time,     do: 0
     def recharge_time, do: 0
     def energy_cost,   do: 0
+
+    def apply_effect(_caster, target) do
+      damage = 10 # TODO fix me whenever
+      target |> Entity.update_attribute(Health, fn %Health{health: health} = h -> %Health{h | health: health - damage} end)
+      :ok
+    end
   end
 
   defskill PowerBlock, id: 5 do

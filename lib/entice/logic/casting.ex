@@ -8,7 +8,7 @@ defmodule Entice.Logic.Casting do
   You can pass in a listener PID or nil, and you will get notified
   of the following events:
 
-      {:skill_casted,           %{entity_id: entity, skill: skill}}
+      {:skill_casted,           %{entity_id: entity, skill: skill, target_entity_id: target}}
       {:skill_recharged,        %{entity_id: entity, skill: skill}}
       {:after_cast_delay_ended, %{entity_id: entity}}
   """
@@ -37,7 +37,7 @@ defmodule Entice.Logic.Casting do
 
   @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
   def cast_skill(entity, skill, target, report_to_pid \\ nil) when is_atom(skill) and is_pid(report_to_pid),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, report_to_pid, %{target: nil, skill: skill}})
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, report_to_pid, %{target: target, skill: skill}})
 
 
   @doc "Is there a better way to export this value out of this module?"
@@ -53,7 +53,7 @@ defmodule Entice.Logic.Casting do
 
 
     def handle_call(
-        {:casting_cast_start, report_to_pid, %{target: _target, skill: skill}},
+        {:casting_cast_start, report_to_pid, %{target: target, skill: skill}},
         %Entity{attributes: %{
           Casting => %Casting{},
           Energy => %Energy{mana: mana}}} = entity) do
@@ -61,7 +61,7 @@ defmodule Entice.Logic.Casting do
       response = can_cast?(skill, entity)
       entity = case response do
         {:ok, _} ->
-          timer = cast_start(skill.cast_time, skill, report_to_pid)
+          timer = cast_start(skill.cast_time, skill, target, report_to_pid)
           entity
           |> update_attribute(Casting, fn c -> %Casting{c | cast_timer: timer} end)
           |> reduce_mana(mana - skill.energy_cost)
@@ -76,10 +76,13 @@ defmodule Entice.Logic.Casting do
 
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:casting_cast_end, skill, report_to_pid}, entity) do
+    def handle_event({:casting_cast_end, skill, target, report_to_pid}, entity) do
       recharge_timer = recharge_start(skill.recharge_time, skill, report_to_pid)
       after_cast_timer = after_cast_start(Entice.Logic.Casting.after_cast_delay, report_to_pid)
-      if report_to_pid, do: report_to_pid |> send {:skill_casted, %{entity_id: entity.id, skill: skill}}
+
+      if report_to_pid, do: report_to_pid |> send {:skill_casted, %{entity_id: entity.id, skill: skill, target_entity_id: target}}
+      skill.apply_effect(entity.id, target)
+
       {:ok, entity |> update_attribute(Casting,
         fn c ->
           %Casting{c |
@@ -114,8 +117,8 @@ defmodule Entice.Logic.Casting do
     do: entity |> update_attribute(Energy, fn e -> %Energy{e | mana: new_mana} end)
 
 
-    defp cast_start(cast_time, skill, report_to_pid),
-    do: start_timer({:casting_cast_end, skill, report_to_pid}, cast_time)
+    defp cast_start(cast_time, skill, target, report_to_pid),
+    do: start_timer({:casting_cast_end, skill, target, report_to_pid}, cast_time)
 
 
     defp recharge_start(recharge_time, skill, report_to_pid),

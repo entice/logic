@@ -1,11 +1,11 @@
 defmodule Entice.Logic.CastingTest do
   use ExUnit.Case, async: true
+  use Entice.Logic.Attributes
   alias Entice.Entity
   alias Entice.Entity.Attribute
   alias Entice.Entity.Test.Spy
   alias Entice.Logic.Skills
   alias Entice.Logic.Casting
-  alias Entice.Logic.Vitals.Energy
   @moduletag :casting
 
 
@@ -60,8 +60,8 @@ defmodule Entice.Logic.CastingTest do
     assert nil == Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
 
-    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, _pid}}, (Skills.SignetOfCapture.cast_time + 100)
-    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.SignetOfCapture}}
+    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, nil, _pid}}, (Skills.SignetOfCapture.cast_time + 100)
+    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.SignetOfCapture, target_entity_id: nil}}
     assert nil != Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil != Entity.get_attribute(eid, Casting).after_cast_timer
   end
@@ -88,5 +88,20 @@ defmodule Entice.Logic.CastingTest do
     assert nil == Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil == Entity.get_attribute(eid, Casting).cast_timer
     assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
+  end
+
+
+  test "check correct effect application", %{entity_id: eid} do
+    # prepare a target
+    {:ok, e1, _p1} = Entity.start_plain
+    Attribute.register(e1)
+    Attribute.put(e1, %Health{})
+    %Health{health: health} = Entity.get_attribute(e1, Health)
+
+    assert {:ok, Skills.Bamph} = Casting.cast_skill(eid, Skills.Bamph, e1, self)
+    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.Bamph, target_entity_id: ^e1}}, (Skills.Bamph.cast_time + 100)
+
+    %Health{health: health_after_damage} = Entity.get_attribute(e1, Health)
+    assert health_after_damage < health
   end
 end
