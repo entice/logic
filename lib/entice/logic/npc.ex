@@ -17,6 +17,7 @@ defmodule Entice.Logic.Npc do
     for map <- Area.get_maps do
       {:ok, id, _pid} = Entity.start()
       Npc.register(id, map, "Me does nothing :3")
+      Vitals.register(id)
     end
     :ok
   end
