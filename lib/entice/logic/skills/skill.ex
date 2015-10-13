@@ -4,6 +4,7 @@ defmodule Entice.Logic.Skill do
   defmacro __using__(_) do
     quote do
       import Entice.Logic.Skill
+      import Entice.Logic.Skill.Effect
 
       @skills %{}
       @before_compile Entice.Logic.Skill
@@ -23,7 +24,7 @@ defmodule Entice.Logic.Skill do
         def id, do: unquote(skillid)
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
-        def apply_effect(caster, target), do: :ok
+        def apply_effect(target, caster), do: {:ok, caster}
         defoverridable [apply_effect: 2]
         unquote(do_block)
       end
@@ -87,7 +88,32 @@ defmodule Entice.Logic.Skill.Behaviour do
   defcallback energy_cost() :: integer
 
   @doc "Is called after the casting finished."
-  defcallback apply_effect(caster_entity_id :: term, target_entity_id :: term) ::
-    :ok |
+  defcallback apply_effect(target_entity_id :: term, caster_entity :: %Entity{}) ::
+    {:ok, new_caster_entity :: %Entity{}} |
     {:error, reason :: term}
+end
+
+
+defmodule Entice.Logic.Skill.Effect do
+  @moduledoc """
+  Helpers that can be used when implementing skill effect scripts
+  """
+  use Entice.Logic.Attributes
+  alias Entice.Entity
+
+
+  def damage(target, amount) do
+    target |> Entity.update_attribute(Health,
+      fn %Health{health: health} = h when (health - amount) <= 0 -> %Health{h | health: 0}
+         %Health{health: health} = h                             -> %Health{h | health: (health - amount)}
+      end)
+  end
+
+
+  def heal(target, amount) do
+    target |> Entity.update_attribute(Health,
+      fn %Health{health: health, max_health: max} = h when (health + amount) >= max -> %Health{h | health: max}
+         %Health{health: health} = h                                                -> %Health{h | health: (health + amount)}
+      end)
+  end
 end

@@ -37,10 +37,9 @@ defmodule Entice.Logic.Skills do
     def recharge_time, do: 0
     def energy_cost,   do: 0
 
-    def apply_effect(_caster, target) do
-      damage = 10 # TODO fix me whenever
-      target |> Entity.update_attribute(Health, fn %Health{health: health} = h -> %Health{h | health: health - damage} end)
-      :ok
+    def apply_effect(target, caster) do
+      damage(target, 10)
+      {:ok, caster}
     end
   end
 
