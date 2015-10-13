@@ -20,11 +20,12 @@ defmodule Entice.Logic.Skill do
     quote do
       # add the module
       defmodule unquote(skillname) do
+        import Entice.Logic.Skill.Effect
         @behaviour Entice.Logic.Skill.Behaviour
         def id, do: unquote(skillid)
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
-        def apply_effect(target, caster), do: {:ok, caster}
+        def apply_effect(target, caster), do: :ok
         defoverridable [apply_effect: 2]
         unquote(do_block)
       end
@@ -89,7 +90,7 @@ defmodule Entice.Logic.Skill.Behaviour do
 
   @doc "Is called after the casting finished."
   defcallback apply_effect(target_entity_id :: term, caster_entity :: %Entity{}) ::
-    {:ok, new_caster_entity :: %Entity{}} |
+    :ok |
     {:error, reason :: term}
 end
 
@@ -107,6 +108,7 @@ defmodule Entice.Logic.Skill.Effect do
       fn %Health{health: health} = h when (health - amount) <= 0 -> %Health{h | health: 0}
          %Health{health: health} = h                             -> %Health{h | health: (health - amount)}
       end)
+    :ok
   end
 
 
@@ -115,5 +117,6 @@ defmodule Entice.Logic.Skill.Effect do
       fn %Health{health: health, max_health: max} = h when (health + amount) >= max -> %Health{h | health: max}
          %Health{health: health} = h                                                -> %Health{h | health: (health + amount)}
       end)
+    :ok
   end
 end

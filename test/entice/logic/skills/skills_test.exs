@@ -23,9 +23,9 @@ defmodule Entice.Logic.SkillsTest do
     def recharge_time, do: 10000
     def energy_cost,   do: 10
 
-    def apply_effect(id, %Entity{id: id, attributes: %{TestAttr => %TestAttr{test_pid: pid}}} = caster) do
+    def apply_effect(pid, pid) do
       send pid, :gotcha
-      {:ok, caster}
+      :ok
     end
   end
 
@@ -62,8 +62,7 @@ defmodule Entice.Logic.SkillsTest do
   end
 
   test "skill after-cast-time effects" do
-    entity = %Entity{attributes: %{TestAttr => %TestAttr{test_pid: self}}}
-    SomeOtherSkill.apply_effect(entity.id, entity)
+    SomeOtherSkill.apply_effect(self, self)
     assert_receive :gotcha
   end
 
@@ -84,5 +83,21 @@ defmodule Entice.Logic.SkillsTest do
 
     %Health{health: health_after_damage} = Entity.get_attribute(eid, Health)
     assert health_after_damage == (health - 10)
+  end
+
+
+  test "healing effect" do
+    {:ok, eid, _pid} = Entity.start_plain()
+    Attribute.register(eid)
+    Attribute.put(eid, %Health{health: (%Health{}).health - 20})
+    Spy.register(eid)
+
+    %Health{health: health} = Entity.get_attribute(eid, Health)
+
+    heal(eid, 10)
+    assert_receive %{sender: ^eid, event: _}
+
+    %Health{health: health_after_heal} = Entity.get_attribute(eid, Health)
+    assert health_after_heal == (health + 10)
   end
 end

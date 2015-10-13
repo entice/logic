@@ -15,6 +15,9 @@ defmodule Entice.Logic.Skills do
     def cast_time,     do: 2000
     def recharge_time, do: 4000
     def energy_cost,   do: 0
+
+    def apply_effect(_target, caster),
+    do: heal(caster, 10)
   end
 
   defskill ResurrectionSignet, id: 2 do
@@ -37,10 +40,8 @@ defmodule Entice.Logic.Skills do
     def recharge_time, do: 0
     def energy_cost,   do: 0
 
-    def apply_effect(target, caster) do
-      damage(target, 10)
-      {:ok, caster}
-    end
+    def apply_effect(target, caster),
+    do: damage(target, 10)
   end
 
   defskill PowerBlock, id: 5 do

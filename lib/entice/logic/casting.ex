@@ -81,16 +81,15 @@ defmodule Entice.Logic.Casting do
       recharge_timer = recharge_start(skill.recharge_time, skill, report_to_pid)
       after_cast_timer = after_cast_start(Entice.Logic.Casting.after_cast_delay, report_to_pid)
 
-      skill.apply_effect(target, entity)
-      |> handle_cast_result(entity, skill)
+      skill.apply_effect(target, entity.id)
+      |> handle_cast_result(skill)
       |> case do
         {:error, reason} ->
           if report_to_pid, do: report_to_pid |> send {:skill_cast_interrupted, %{entity_id: entity.id, skill: skill, target_entity_id: target, reason: reason}}
           {:ok, entity}
-
-        {:ok, new_entity} ->
+        :ok ->
           if report_to_pid, do: report_to_pid |> send {:skill_casted, %{entity_id: entity.id, skill: skill, target_entity_id: target}}
-          {:ok, new_entity |> update_attribute(Casting,
+          {:ok, entity |> update_attribute(Casting,
             fn c ->
               %Casting{c |
                 cast_timer: nil,
@@ -172,11 +171,10 @@ defmodule Entice.Logic.Casting do
     defp not_casting?(_skill, _cast_timer, _after_cast_timer), do: {:error, :still_casting}
 
 
-    defp handle_cast_result({:ok, %Entity{} = entity}, entity, _skill),                              do: {:ok, entity}
-    defp handle_cast_result({:ok, %Entity{id: id} = entity}, %Entity{id: id} = _old_entity, _skill), do: {:ok, entity}
-    defp handle_cast_result({:error, reason}, _old_entity, _skill),                                  do: {:error, reason}
+    defp handle_cast_result(:ok, _skill),              do: :ok
+    defp handle_cast_result({:error, reason}, _skill), do: {:error, reason}
 
-    defp handle_cast_result(result, _old_entity, skill),
-    do: raise "Corrupted result after applying effect of skill #{skill.underscore_name}. Got: #{result} - should be {:ok, new_entity_state} or {:error, reason}"
+    defp handle_cast_result(result, skill),
+    do: raise "Corrupted result after applying effect of skill #{skill.underscore_name}. Got: #{result} - should be :ok or {:error, reason}"
   end
 end
