@@ -16,14 +16,22 @@ defmodule Entice.Logic.SkillBar do
   do: register(entity, from_skill_ids(skill_ids))
 
   def register(entity, %SkillBar{} = skillbar),
-  do: Entity.put_behaviour(entity, SkillBar.Behaviour, skillbar)
+  do: Entity.put_attribute(entity, skillbar)
 
 
   def unregister(entity),
-  do: Entity.remove_behaviour(entity, SkillBar)
+  do: Entity.remove_attribute(entity, SkillBar)
 
 
   # External API
+
+
+  def get_skill(entity, slot) do
+    case Entity.fetch_attribute(entity, SkillBar) do
+      {:ok, %SkillBar{slots: slots}} -> Enum.at(slots, slot, Skill.NoSkill)
+      _                              -> Skills.NoSkill
+    end
+  end
 
 
   def get_skills(entity) do
@@ -32,10 +40,6 @@ defmodule Entice.Logic.SkillBar do
       _                             -> []
     end
   end
-
-
-  def get_skill(entity, slot),
-  do: Entity.call_behaviour(entity, SkillBar.Behaviour, {:skillbar_get_skill, slot})
 
 
   def change_skill(entity, slot, skill_id) when is_number(skill_id),
@@ -77,24 +81,4 @@ defmodule Entice.Logic.SkillBar do
 
   defp skillbar_trunc_or_fill(skill_ids) when is_list(skill_ids),
   do: skill_ids
-
-
-  defmodule Behaviour do
-    use Entice.Entity.Behaviour
-
-
-    def init(entity, %SkillBar{} = skillbar),
-    do: {:ok, entity |> put_attribute(skillbar)}
-
-
-    def handle_call({:skillbar_get_skill, slot}, %Entity{attributes: %{SkillBar => %SkillBar{slots: slots}}} = entity),
-    do: {:ok, slots |> Enum.fetch(slot), entity}
-
-
-    def handle_call(event, entity), do: super(event, entity)
-
-
-    def terminate(_reason, entity),
-    do: {:ok, entity |> remove_attribute(SkillBar)}
-  end
 end

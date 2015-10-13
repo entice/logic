@@ -28,9 +28,9 @@ defmodule Entice.Logic.SkillBarTest do
   test "get skill", %{entity_id: eid} do
     SkillBar.register(eid, [1,2,3,4,0,0,0,313373])
 
-    assert {:ok, Skills.HealingSignet} = SkillBar.get_skill(eid, 0)
-    assert {:ok, Skills.Bamph} = SkillBar.get_skill(eid, 3)
-    assert {:ok, Skills.NoSkill} = SkillBar.get_skill(eid, 4)
-    assert {:ok, Skills.NoSkill} = SkillBar.get_skill(eid, 7)
+    assert Skills.HealingSignet = SkillBar.get_skill(eid, 0)
+    assert Skills.Bamph = SkillBar.get_skill(eid, 3)
+    assert Skills.NoSkill = SkillBar.get_skill(eid, 4)
+    assert Skills.NoSkill = SkillBar.get_skill(eid, 7)
   end
 end
