@@ -1,7 +1,6 @@
 defmodule Entice.Logic.Skills do
   use Entice.Logic.Skill
   use Entice.Logic.Attributes
-  alias Entice.Entity
 
   defskill NoSkill, id: 0 do
     def description,   do: "Non-existing skill as a placeholder for empty skillbar slots."
@@ -40,7 +39,7 @@ defmodule Entice.Logic.Skills do
     def recharge_time, do: 0
     def energy_cost,   do: 0
 
-    def apply_effect(target, caster),
+    def apply_effect(target, _caster),
     do: damage(target, 10)
   end
 
