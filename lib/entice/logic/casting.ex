@@ -12,6 +12,8 @@ defmodule Entice.Logic.Casting do
       {:skill_cast_interrupted, %{entity_id: entity, skill: skill, target_entity_id: target, reason: reason}}
       {:skill_recharged,        %{entity_id: entity, skill: skill}}
       {:after_cast_delay_ended, %{entity_id: entity}}
+
+  TODO propagate these events in the local coordination instead to only one receiver
   """
   use Pipe
   alias Entice.Logic.Casting
@@ -37,8 +39,9 @@ defmodule Entice.Logic.Casting do
 
 
   @doc "Deals with timing and thus might fail. Should be called by the Skillbar"
-  def cast_skill(entity, skill, target, report_to_pid \\ nil) when is_atom(skill) and is_pid(report_to_pid),
-  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, report_to_pid, %{target: target, skill: skill}})
+  def cast_skill(entity, skill, slot, target, report_to_pid \\ nil)
+  when is_atom(skill) and (is_nil(report_to_pid) or is_pid(report_to_pid)),
+  do: Entity.call_behaviour(entity, Casting.Behaviour, {:casting_cast_start, report_to_pid, %{target: target, skill: skill, slot: slot}})
 
 
   @doc "Is there a better way to export this value out of this module?"
@@ -54,22 +57,23 @@ defmodule Entice.Logic.Casting do
 
 
     def handle_call(
-        {:casting_cast_start, report_to_pid, %{target: target, skill: skill}},
+        {:casting_cast_start, report_to_pid, %{target: target, skill: skill, slot: slot}},
         %Entity{attributes: %{
           Casting => %Casting{},
           Energy => %Energy{mana: mana}}} = entity) do
+      cast_time = skill.cast_time
 
-      response = can_cast?(skill, entity)
-      entity = case response do
-        {:ok, _} ->
-          timer = cast_start(skill.cast_time, skill, target, report_to_pid)
-          entity
-          |> update_attribute(Casting, fn c -> %Casting{c | cast_timer: timer} end)
-          |> reduce_mana(mana - skill.energy_cost)
-        _ -> entity
+      check_able_to_cast(skill, entity)
+      |> case do
+        {:error, _reason} = msg -> {:ok, msg, entity}
+        {:ok, skill} ->
+          timer = cast_start(cast_time, skill, slot, target, report_to_pid)
+          # TODO propagate locally for other entities to see
+          {:ok, {:ok, skill, cast_time},
+            entity
+            |> update_attribute(Casting, fn c -> %Casting{c | cast_timer: timer} end)
+            |> reduce_mana(mana - skill.energy_cost)}
       end
-
-      {:ok, response, entity}
     end
 
 
@@ -77,32 +81,37 @@ defmodule Entice.Logic.Casting do
 
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:casting_cast_end, skill, target, report_to_pid}, entity) do
-      recharge_timer = recharge_start(skill.recharge_time, skill, report_to_pid)
+    def handle_event({:casting_cast_end, skill, slot, cast_time, target, report_to_pid}, entity) do
+      do_report        = if report_to_pid, do: true, else: false # nil/other to boolean
+      recharge_time    = skill.recharge_time
+      recharge_timer   = recharge_start(recharge_time, skill, slot, report_to_pid)
       after_cast_timer = after_cast_start(Entice.Logic.Casting.after_cast_delay, report_to_pid)
 
       skill.apply_effect(target, entity.id)
       |> handle_cast_result(skill)
+      |> prepare_cast_message(entity, skill, slot, target, recharge_time)
       |> case do
-        {:error, reason} ->
-          if report_to_pid, do: report_to_pid |> send {:skill_cast_interrupted, %{entity_id: entity.id, skill: skill, target_entity_id: target, reason: reason}}
-          {:ok, entity}
-        :ok ->
-          if report_to_pid, do: report_to_pid |> send {:skill_casted, %{entity_id: entity.id, skill: skill, target_entity_id: target}}
-          {:ok, entity |> update_attribute(Casting,
-            fn c ->
-              %Casting{c |
-                cast_timer: nil,
-                after_cast_timer: after_cast_timer,
-                recharge_timers: c.recharge_timers |> Map.put(skill, recharge_timer)}
-            end)}
+        message when do_report and cast_time > 0 -> report_to_pid |> send message
+        _                                        ->
       end
+
+      {:ok, entity |> update_attribute(Casting,
+        fn c ->
+          %Casting{c |
+            cast_timer: nil,
+            after_cast_timer: after_cast_timer,
+            recharge_timers: c.recharge_timers |> Map.put(skill, recharge_timer)}
+        end)}
     end
 
 
     @doc "This event triggers when a skill's recharge period ends, it resets the recharge timer for the skill."
-    def handle_event({:casting_recharge_end, skill, report_to_pid}, entity) do
-      if report_to_pid, do: report_to_pid |> send {:skill_recharged, %{entity_id: entity.id, skill: skill}}
+    def handle_event({:casting_recharge_end, skill, slot, recharge_time, report_to_pid}, entity) do
+      do_report = if report_to_pid, do: true, else: false # nil/other to boolean
+
+      if do_report and recharge_time > 0,
+      do: report_to_pid |> send {:skill_recharged, %{entity_id: entity.id, skill: skill, slot: slot}}
+
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: c.recharge_timers |> Map.delete(skill)} end)}
     end
 
@@ -124,22 +133,29 @@ defmodule Entice.Logic.Casting do
     do: entity |> update_attribute(Energy, fn e -> %Energy{e | mana: new_mana} end)
 
 
-    defp cast_start(cast_time, skill, target, report_to_pid),
-    do: start_timer({:casting_cast_end, skill, target, report_to_pid}, cast_time)
+    defp cast_start(cast_time, skill, slot, target, report_to_pid),
+    do: start_timer({:casting_cast_end, skill, slot, cast_time, target, report_to_pid}, cast_time)
 
 
-    defp recharge_start(recharge_time, skill, report_to_pid),
-    do: start_timer({:casting_recharge_end, skill, report_to_pid}, recharge_time)
+    defp recharge_start(recharge_time, skill, slot, report_to_pid),
+    do: start_timer({:casting_recharge_end, skill, slot, recharge_time, report_to_pid}, recharge_time)
 
 
     defp after_cast_start(after_cast_time, report_to_pid),
     do: start_timer({:casting_after_cast_end, report_to_pid}, after_cast_time)
 
 
-    defp start_timer(message, time), do: self |> Process.send_after(message, time)
+    defp start_timer(message, time) do
+      if time == 0 do
+        self |> send message
+        nil
+      else
+        self |> Process.send_after(message, time)
+      end
+    end
 
 
-    defp can_cast?(skill,  %Entity{attributes: %{
+    defp check_able_to_cast(skill,  %Entity{attributes: %{
       Casting => %Casting{cast_timer: cast_timer, after_cast_timer: after_cast_timer, recharge_timers: recharge_timers},
       Energy => %Energy{mana: mana}}} = _entity) do
 
@@ -176,5 +192,25 @@ defmodule Entice.Logic.Casting do
 
     defp handle_cast_result(result, skill),
     do: raise "Corrupted result after applying effect of skill #{skill.underscore_name}. Got: #{result} - should be :ok or {:error, reason}"
+
+
+    defp prepare_cast_message(:ok, entity, skill, slot, target, recharge_time) do
+      {:skill_casted, %{
+        entity_id: entity.id,
+        skill: skill,
+        slot: slot,
+        target_entity_id: target,
+        recharge_time: recharge_time}}
+    end
+
+    defp prepare_cast_message({:error, reason}, entity, skill, slot, target, recharge_time) do
+      {:skill_cast_interrupted, %{
+        entity_id: entity.id,
+        skill: skill,
+        slot: slot,
+        target_entity_id: target,
+        recharge_time: recharge_time,
+        reason: reason}}
+    end
   end
 end
