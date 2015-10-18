@@ -81,7 +81,7 @@ defmodule Entice.Logic.Casting do
 
 
     @doc "This event triggers when the cast ends, it resets the casting timer, calls the skill's callback, and triggers recharge_end after a while."
-    def handle_event({:casting_cast_end, skill, slot, cast_time, target, report_to_pid}, entity) do
+    def handle_event({:casting_cast_end, skill, slot, target, report_to_pid}, entity) do
       do_report        = if report_to_pid, do: true, else: false # nil/other to boolean
       recharge_time    = skill.recharge_time
       recharge_timer   = recharge_start(recharge_time, skill, slot, report_to_pid)
@@ -91,8 +91,8 @@ defmodule Entice.Logic.Casting do
       |> handle_cast_result(skill)
       |> prepare_cast_message(entity, skill, slot, target, recharge_time)
       |> case do
-        message when do_report and cast_time > 0 -> report_to_pid |> send message
-        _                                        ->
+        message when do_report -> report_to_pid |> send message
+        _                      ->
       end
 
       {:ok, entity |> update_attribute(Casting,
@@ -134,7 +134,7 @@ defmodule Entice.Logic.Casting do
 
 
     defp cast_start(cast_time, skill, slot, target, report_to_pid),
-    do: start_timer({:casting_cast_end, skill, slot, cast_time, target, report_to_pid}, cast_time)
+    do: start_timer({:casting_cast_end, skill, slot, target, report_to_pid}, cast_time)
 
 
     defp recharge_start(recharge_time, skill, slot, report_to_pid),

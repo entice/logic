@@ -61,7 +61,7 @@ defmodule Entice.Logic.CastingTest do
     assert nil == Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
 
-    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, 0, ^cast_time, nil, _pid}}, (Skills.SignetOfCapture.cast_time + 100)
+    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, 0, nil, _pid}}, (Skills.SignetOfCapture.cast_time + 100)
     assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.SignetOfCapture, slot: 0, target_entity_id: nil}}
     assert nil != Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil != Entity.get_attribute(eid, Casting).after_cast_timer
@@ -104,7 +104,7 @@ defmodule Entice.Logic.CastingTest do
 
     cast_time = Skills.Bamph.cast_time
     assert {:ok, Skills.Bamph, ^cast_time} = Casting.cast_skill(eid, Skills.Bamph, 0, e1, self)
-    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.Bamph, 0, ^cast_time, ^e1, _pid}}, (Skills.Bamph.cast_time + 100)
+    assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.Bamph, 0, ^e1, _pid}}, (Skills.Bamph.cast_time + 100)
 
     %Health{health: health_after_damage} = Entity.get_attribute(e1, Health)
     assert health_after_damage < health
