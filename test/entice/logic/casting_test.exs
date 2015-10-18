@@ -62,7 +62,7 @@ defmodule Entice.Logic.CastingTest do
     assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
 
     assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.SignetOfCapture, 0, ^cast_time, nil, _pid}}, (Skills.SignetOfCapture.cast_time + 100)
-    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.SignetOfCapture, target_entity_id: nil}}
+    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.SignetOfCapture, slot: 0, target_entity_id: nil}}
     assert nil != Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil != Entity.get_attribute(eid, Casting).after_cast_timer
   end
@@ -88,7 +88,7 @@ defmodule Entice.Logic.CastingTest do
 
     assert_receive %{sender: ^eid, event: {:casting_recharge_end, Skills.SignetOfCapture, 0, ^recharge_time, _pid}}, (
       Skills.SignetOfCapture.cast_time + Skills.SignetOfCapture.recharge_time + 100)
-    assert_receive {:skill_recharged, %{entity_id: ^eid, skill: Skills.SignetOfCapture}}
+    assert_receive {:skill_recharged, %{entity_id: ^eid, skill: Skills.SignetOfCapture, slot: 0}}
     assert nil == Entity.get_attribute(eid, Casting).recharge_timers[Skills.SignetOfCapture]
     assert nil == Entity.get_attribute(eid, Casting).cast_timer
     assert nil == Entity.get_attribute(eid, Casting).after_cast_timer
