@@ -8,9 +8,9 @@ defmodule Entice.Logic.Casting do
   You can pass in a listener PID or nil, and you will get notified
   of the following events:
 
-      {:skill_casted,           %{entity_id: entity, skill: skill, target_entity_id: target}}
-      {:skill_cast_interrupted, %{entity_id: entity, skill: skill, target_entity_id: target, reason: reason}}
-      {:skill_recharged,        %{entity_id: entity, skill: skill}}
+      {:skill_casted,           %{entity_id: entity, skill: skill, slot: slot, target_entity_id: target}}
+      {:skill_cast_interrupted, %{entity_id: entity, skill: skill, slot: slot, target_entity_id: target, reason: reason}}
+      {:skill_recharged,        %{entity_id: entity, skill: skill, slot: slot}}
       {:after_cast_delay_ended, %{entity_id: entity}}
 
   TODO propagate these events in the local coordination instead to only one receiver
