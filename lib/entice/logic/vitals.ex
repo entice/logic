@@ -42,9 +42,15 @@ defmodule Entice.Logic.Vitals do
                    |> put_attribute(%Morale{morale: 0})}
     end
 
-    def init(entity, :entity_resurrected) do
-      {:ok, entity |> update_attribute(Health, fn health -> get_max_health(entity) end)
-                   |> update_attribute(Energy, fn energy -> get_max_energy(entity) end)}
+    def init(entity, [:entity_resurrected, percent_health, percent_energy]) do
+      {_, max_health: max_health} = get_max_health(entity)
+      resurrected_health = max_health / 100 * percent_health
+
+      {_, max_mana: max_mana} = get_max_energy(entity)
+      resurrected_mana = max_mana / 100 * percent_energy
+
+      {:ok, entity |> update_attribute(Health, fn _ -> %Health{health: resurrected_health, max_health: max_health} end)
+                   |> update_attribute(Energy, fn _ -> %Energy{mana: resurrected_mana, max_mana: max_mana} end)}
     end
 
     def termiante(:remove_handler, entity) do
