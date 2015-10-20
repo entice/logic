@@ -1,4 +1,4 @@
-defmodule Entice.Logic.Area.Maps do
+defmodule Entice.Logic.Map do
   @moduledoc """
   Top-level map macros for convenient access to all defined maps.
   Is mainly used in area.ex where all the maps are defined.
@@ -8,10 +8,10 @@ defmodule Entice.Logic.Area.Maps do
   defmacro __using__(_) do
     quote do
       alias Entice.Utils.Geom.Coord
-      import Entice.Logic.Area.Maps
+      import Entice.Logic.Map
 
       @maps []
-      @before_compile Entice.Logic.Area.Maps
+      @before_compile Entice.Logic.Map
     end
   end
 
@@ -22,7 +22,7 @@ defmodule Entice.Logic.Area.Maps do
 
     quote do
       defmodule unquote(mapname) do
-        use Entice.Logic.Area.Maps.Map
+        use Entice.Logic.Maps.Map
         def spawn, do: unquote(spawn)
         def is_outpost?, do: unquote(outpost)
       end
@@ -50,8 +50,8 @@ defmodule Entice.Logic.Area.Maps do
   end
 end
 
-
-defmodule Entice.Logic.Area.Maps.Map do
+#TODO: Make this clearer
+defmodule Entice.Logic.Maps.Map do
   @moduledoc """
   This macro puts all common map functions inside the map/area module that uses it
   """
