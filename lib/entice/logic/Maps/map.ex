@@ -50,7 +50,6 @@ defmodule Entice.Logic.Map do
   end
 end
 
-#TODO: Make this clearer
 defmodule Entice.Logic.Maps.Map do
   @moduledoc """
   This macro puts all common map functions inside the map/area module that uses it

@@ -9,12 +9,12 @@ defmodule Entice.Logic.MapInstance do
 
   def start_instance(map, player_entities \\ [], npc_info \\ []) do
     {:ok, id, _pid} = Entity.start()
-    npc_entities = for npc = %{name: name, model: model} <- npc_info,
+    npc_entities = for _npc = %{name: name, model: model} <- npc_info,
     do: Npc.spawn(name, model) #TODO: Implement in Npc
     MapInstance.register(id, map, player_entities, npc_entities)
   end
 
-  def join(entity, player_entity) do #Player already in players check to be done in web?
+  def join(entity, player_entity) do #Player-already-in-players check to be done in web?
     entity |> Entity.update_attribute(MapInstance, fn(attrs) ->
       attrs
       |> Map.update(MapInstance, :players, [player_entity], fn(players) -> [players | player_entity] end)
@@ -29,6 +29,12 @@ defmodule Entice.Logic.MapInstance do
     #Check if players empty here or web?
   end
 
+  def stop_instance(entity) do
+    map_instance = Entity.take_attributes(entity, [MapInstance])
+    npcs = map_instance |> Map.get(:npcs)
+    for npc <- npcs, do: Npc.unregister(npc)
+  end
+
   def register(entity, map, players, npcs) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
@@ -37,6 +43,7 @@ defmodule Entice.Logic.MapInstance do
   end
 
   def unregister(entity) do
+    MapInstance.stop_instance(entity)
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
       |> Map.delete(MapInstance)
