@@ -27,12 +27,8 @@ defmodule Entice.Logic.Player do
     hairstyle: 7,
     face: 30)
 
-  defmodule Health, do: defstruct(
-    health: 500)
-
-  defmodule Energy, do: defstruct(
-    mana: 50)
-
+  defmodule Level, do: defstruct(
+    level: 20)
 
   @doc "Prepares a single, simple player"
   def register(entity, map, name \\ "Unkown Entity", appearance \\ %Appearance{}) do
@@ -42,8 +38,7 @@ defmodule Entice.Logic.Player do
       |> Map.put(Position, %Position{pos: map.spawn})
       |> Map.put(MapInstance, %MapInstance{map: map})
       |> Map.put(Appearance, appearance)
-      |> Map.put(Health, %Health{})
-      |> Map.put(Energy, %Energy{})
+      |> Map.put(Level, %Level{level: 20})
     end)
   end
 
@@ -56,15 +51,14 @@ defmodule Entice.Logic.Player do
       |> Map.delete(Position)
       |> Map.delete(MapInstance)
       |> Map.delete(Appearance)
-      |> Map.delete(Health)
-      |> Map.delete(Energy)
+      |> Map.delete(Level)
     end)
   end
 
 
   @doc "Returns all player related attributes as an attribute map"
   def attributes(entity),
-  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Appearance, Health, Energy])
+  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Appearance, Level])
 
 
   def set_appearance(entity, %Appearance{} = new_appear),

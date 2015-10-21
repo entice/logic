@@ -1,6 +1,7 @@
 defmodule Entice.Logic.GroupTest do
   use ExUnit.Case, async: true
   alias Entice.Entity
+  alias Entice.Entity.Attribute
   alias Entice.Entity.Test.Spy
   alias Entice.Logic.Group
   alias Entice.Logic.Group.Leader
@@ -8,22 +9,26 @@ defmodule Entice.Logic.GroupTest do
 
 
   setup do
-    {:ok, e1, _pid} = Entity.start
-    {:ok, e2, _pid} = Entity.start
-    {:ok, e3, _pid} = Entity.start
-    {:ok, e4, _pid} = Entity.start
+    {:ok, e1, _pid} = Entity.start_plain
+    {:ok, e2, _pid} = Entity.start_plain
+    {:ok, e3, _pid} = Entity.start_plain
+    {:ok, e4, _pid} = Entity.start_plain
 
+    Attribute.register(e1)
     Group.register(e1)
     Spy.register(e1, self)
 
+    Attribute.register(e2)
     Group.register(e2)
     Spy.register(e2, self)
 
+    Attribute.register(e3)
     Group.register(e3)
     Group.new_leader(e3, e1)
     Spy.register(e3, self)
     assert_receive %{sender: ^e1, event: {:group_assign, ^e3}}
 
+    Attribute.register(e4)
     Group.register(e4)
     Group.new_leader(e4, e2)
     Spy.register(e4, self)
