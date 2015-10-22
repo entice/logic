@@ -17,18 +17,15 @@ defmodule Entice.Logic.Vitals do
 
 
   def register(entity_id),
-  do: Entity.put_behaviour(entity_id, Vitals.Behaviour, [])
+  do: Entity.put_behaviour(entity_id, Vitals.AliveBehaviour, [])
 
 
-  def unregister(entity_id),
-  do: Entity.remove_behaviour(entity_id, Vitals.Behaviour)
-
-  #External API
-  def damage(entity, amount) do
-
+  def unregister(entity_id) do
+    Entity.remove_behaviour(entity_id, Vitals.AliveBehaviour)
+    Entity.remove_behaviour(entity_id, Vitals.DeadBehaviour)
   end
 
-  defmodule Behaviour do
+  defmodule AliveBehaviour do
     use Entice.Entity.Behaviour
     alias Entice.Logic.Vitals.Health
     alias Entice.Logic.Vitals.Energy
@@ -36,13 +33,13 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Player.Level
 
 
-    def init(entity, _args) do
+    def init(%Entity{attributes: {Level => %Level{level: _}} = entity, _args) do
       {:ok, entity |> put_attribute(get_max_health(entity))
                    |> put_attribute(get_max_energy(entity))
                    |> put_attribute(%Morale{morale: 0})}
     end
 
-    def init(entity, [:entity_resurrected, percent_health, percent_energy]) do
+    def init(%Entity{attributes: {Level => %Level{level: _}} = entity, {:entity_resurrected, percent_health, percent_energy}) do
       {_, max_health: max_health} = get_max_health(entity)
       resurrected_health = max_health / 100 * percent_health
 
@@ -53,13 +50,14 @@ defmodule Entice.Logic.Vitals do
                    |> update_attribute(Energy, fn _ -> %Energy{mana: resurrected_mana, max_mana: max_mana} end)}
     end
 
-    def termiante(:remove_handler, entity) do
+    def terminate(:remove_handler, entity) do
       {:ok, entity}
     end
 
     def terminate(_reason, entity) do
       {:ok, entity |> remove_attribute(Health)
-                   |> remove_attribute(Energy)}
+                   |> remove_attribute(Energy)
+                   |> remove_attribute(Morale)}
     end
 
     def handle_event({:vitals_entity_damage, amount}, %Entity{id: id, attributes: %{Health => %Health{health: health, max_health: max_health}}} = entity) do
@@ -73,10 +71,10 @@ defmodule Entice.Logic.Vitals do
     def handle_event({:vitals_entity_heal, amount}, %Entity{id: id} = entity) do
       {:ok, %Health{health: health, max_health: max_health}} = fetch_attribute(entity, Health)
       new_health = health + ammount
-      cond do
-        (health + amount) > max_health -> new_health = max_health
-        (health + amount) < max_health -> new_health = health + amount
+      if new_health > max_health do
+        new_health = max_health
       end
+
       {:ok, entity |> update_attribute(Health, fn _ -> %Health{health: new_health, max_health: max_health})}
     end
 
@@ -97,7 +95,10 @@ defmodule Entice.Logic.Vitals do
 
     #TODO: Take care of Armor, Runes, Weapons...
     defp get_max_energy(_entity) do
-      %Energy{mana: 70, max_mana: 70}
+      {:ok, morale} = fetch_attribute(entity, Morale)
+      inital_mana = 70
+      mana_with_morale = inital_mana / 100 * (100 + morale.morale)
+      %Energy{mana: mana_with_morale, max_mana: inital_mana}
     end
   end
 
@@ -105,15 +106,15 @@ defmodule Entice.Logic.Vitals do
     use Entice.Entity.Behaviour
     alias Entice.Logic.Vitals.Morale
 
-      def handle_event({:vitals_entity_died}, %Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity) do
-        if(morale > -60) do
-          new_morale = morale - (-15)
-        end
-        {:ok, entity |> update_attribute(Morale, fn _ -> %Morale{morale: new_morale} end)}
+    def handle_event({:vitals_entity_died}, %Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity) do
+      if(morale > -60) do
+        new_morale = morale - (-15)
       end
+      {:ok, entity |> update_attribute(Morale, fn _ -> %Morale{morale: new_morale} end)}
+    end
 
-      def handle_event({:vitals_entity_resurrected, percent_health, percent_energy}, %Entity{attributes: %{Health => %Health{health: health, max_health: max_health}, Energy=> %Energy{mana: energy, max_mana: energy}}} = entity) do
-        {:become, Vitals.Behaviour, [:entity_resurrected, percent_health, percent_energy], entity}
-      end
+    def handle_event({:vitals_entity_resurrected, percent_health, percent_energy}, %Entity{attributes: %{Health => %Health{health: health, max_health: max_health}, Energy=> %Energy{mana: energy, max_mana: energy}}} = entity) do
+      {:become, Vitals.AliveBehaviour, {:entity_resurrected, percent_health, percent_energy}, entity}
+    end
   end
 end
