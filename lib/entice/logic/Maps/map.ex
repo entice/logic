@@ -3,12 +3,14 @@ defmodule Entice.Logic.Map do
   Top-level map macros for convenient access to all defined maps.
   Is mainly used in area.ex where all the maps are defined.
   """
+  import Inflex
   alias Entice.Utils.Geom.Coord
 
   defmacro __using__(_) do
     quote do
       alias Entice.Utils.Geom.Coord
       import Entice.Logic.Map
+      unquote(content(__CALLER__.module))
 
       @maps []
       @before_compile Entice.Logic.Map
@@ -22,7 +24,7 @@ defmodule Entice.Logic.Map do
 
     quote do
       defmodule unquote(mapname) do
-        use Entice.Logic.Maps.Map
+        use Entice.Logic.Map
         def spawn, do: unquote(spawn)
         def is_outpost?, do: unquote(outpost)
       end
@@ -48,20 +50,8 @@ defmodule Entice.Logic.Map do
       def get_maps, do: @maps
     end
   end
-end
 
-defmodule Entice.Logic.Maps.Map do
-  @moduledoc """
-  This macro puts all common map functions inside the map/area module that uses it
-  """
-  import Inflex
 
-  defmacro __using__(_) do
-    quote do
-      alias Entice.Utils.Geom.Coord
-      unquote(content(__CALLER__.module))
-    end
-  end
 
   defp content(mod) do
     name = mod |> Module.split |> List.last |> to_string
