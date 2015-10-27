@@ -8,11 +8,13 @@ defmodule Entice.Logic.MapInstance do
     npcs: [],
     map: nil)
 
-  @doc """Registers a MapInstance.Behaviour for the Entity.
+  @doc """
+  Registers a MapInstance.Behaviour for the Entity.
   Params:
     map: a Maps.Map.
     players: list of player entities
-    npc_info: a list of maps with :name and :model attributes."""
+    npc_info: a list of maps with :name and :model attributes.
+    """
   def register(entity, map, npc_info, players \\ []),
   do: Entity.put_behaviour(entity, MapInstance.Behaviour, %{map: map, players: players, npc_info: npc_info})
 
