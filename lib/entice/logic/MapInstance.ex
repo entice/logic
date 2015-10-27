@@ -8,17 +8,15 @@ defmodule Entice.Logic.MapInstance do
     npcs: [],
     map: nil)
 
-  def join(entity, player_entity) do
-    Entity.call_behaviour(entity, MapInstance.Behaviour, {:map_instance_entity_join, player_entity})
-  end
+  @doc """Registers a MapInstance.Behaviour for the Entity.
+  Params:
+    map: a Maps.Map.
+    players: list of player entities
+    npc_info: a list of maps with :name and :model attributes."""
+  def register(entity, map, npc_info, players \\ []),
+  do: Entity.put_behaviour(entity, MapInstance.Behaviour, %{map: map, players: players, npc_info: npc_info})
 
-  def leave(entity, player_entity) do
-    Entity.call_behaviour(entity, MapInstance.Behaviour, {:map_instance_entity_leave, player_entity})
-  end
-
-  def register(entity, map, players=[], npc_info=[]),
-  do: Entity.put_behaviour(entity, MapInstance.Behaviour, map, players, npc_info)
-
+  @doc "Registers a MapInstance.Behaviour with the npcs already spawned."
   def register(entity, map_instance),
   do: Entity.put_behaviour(entity, MapInstance.Behaviour, map_instance)
 
@@ -28,7 +26,7 @@ defmodule Entice.Logic.MapInstance do
   defmodule Behaviour do
     use Entice.Entity.Behaviour
 
-    def init(entity, map, players, npc_info) do
+    def init(entity, %{map: map, players: players, npc_info: npc_info}) do
       npcs = for %{name: name, model: model} <- npc_info do
         Npc.spawn(name, model) #TODO: Implement in Npc
       end
