@@ -1,11 +1,12 @@
 defmodule Entice.Logic.MapInstance do
   alias Entice.Entity
   alias Entice.Logic.MapInstance
+  alias Entice.Logic.Npc
 
 
   defstruct(
     players: [],
-    npcs: [],
+    npcs: [], #TODO: Figure out if we want the npcs ot be able to join&leave or stay there even if dead or unspawned
     map: nil)
 
   @doc """
@@ -30,7 +31,7 @@ defmodule Entice.Logic.MapInstance do
 
     def init(entity, %{map: map, players: players, npc_info: npc_info}) do
       npcs = for %{name: name, model: model} <- npc_info do
-        Npc.spawn(name, model) #TODO: Implement in Npc
+        Npc.register(map, name) #TODO: Implement in Npc
       end
       map_instance = %MapInstance{players: players, npcs: npcs, map: map}
       init(entity, map_instance)

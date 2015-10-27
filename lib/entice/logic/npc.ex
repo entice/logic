@@ -26,7 +26,6 @@ defmodule Entice.Logic.Npc do
       attrs
       |> Map.put(Name, %Name{name: name})
       |> Map.put(Position, %Position{pos: map.spawn})
-      |> Map.put(MapInstance, %MapInstance{map: map})#TODO: remove?
       |> Map.put(Npc, npc)
       |> Map.put(Level, %Level{level: 20})
     end)
@@ -38,7 +37,6 @@ defmodule Entice.Logic.Npc do
       attrs
       |> Map.delete(Name)
       |> Map.delete(Position)
-      |> Map.delete(MapInstance)#TODO: remove?
       |> Map.delete(Npc)
       |> Map.delete(Level)
     end)
@@ -46,5 +44,5 @@ defmodule Entice.Logic.Npc do
 
 
   def attributes(entity),
-  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Level, Npc])
+  do: Entity.take_attributes(entity, [Name, Position, Level, Npc])
 end
