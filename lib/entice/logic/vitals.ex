@@ -55,10 +55,10 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Player.Level
 
     def init(%Entity{attributes: %{Level => %Level{}, Morale => %Morale{}}} = entity, {:entity_resurrected, percent_health, percent_energy}) do
-      {_, max_health: max_health} = get_max_health(entity)
+      %Health{max_health: max_health} = get_max_health(entity.attributes)
       resurrected_health = max_health / 100 * percent_health
 
-      {_, max_mana: max_mana} = get_max_energy(entity)
+      %Energy{max_mana: max_mana} = get_max_energy(entity.attributes)
       resurrected_mana = max_mana / 100 * percent_energy
 
       {:ok, entity |> update_attribute(Health, fn health -> %Health{ health | health: resurrected_health } end)
@@ -66,10 +66,13 @@ defmodule Entice.Logic.Vitals do
     end
 
     def init(%Entity{attributes: %{Level => %Level{}}} = entity, _args) do
-      {:ok, entity
-                   |> put_attribute(%Morale { morale: 0 })
-                   |> put_attribute(get_max_health(entity))
-                   |> put_attribute(get_max_energy(entity))}
+      {:ok, entity |> put_attribute(%Morale { morale: 0 })
+                   |> attribute_transaction(
+                      fn attrs ->
+                        attrs |> Map.merge(%{
+                          Health => get_max_health(attrs),
+                          Energy => get_max_energy(attrs)})
+                      end)}
     end
 
     def terminate(:remove_handler, entity) do
@@ -77,8 +80,7 @@ defmodule Entice.Logic.Vitals do
     end
 
     def terminate(_reason, entity) do
-      {:ok, entity 
-                   |> remove_attribute(Morale)
+      {:ok, entity |> remove_attribute(Morale)
                    |> remove_attribute(Health)
                    |> remove_attribute(Energy)}
     end
@@ -103,7 +105,7 @@ defmodule Entice.Logic.Vitals do
 
     # internal
 
-    defp get_max_health(%Entity{attributes: %{Level => %Level{level: level}, Morale => %Morale{morale: morale}}} = entity) do
+    defp get_max_health(%{Level => %Level{level: level}, Morale => %Morale{morale: morale}}) do
       health = calc_life_points_for_level(level)
       max_health_with_morale = health / 100 * (100 + morale)
       %Health{health: max_health_with_morale, max_health: max_health_with_morale}
@@ -114,7 +116,7 @@ defmodule Entice.Logic.Vitals do
     do: 100 + ((level - 1) * 20) # Dont add 20 lifePoints for level1
 
     #TODO: Take care of Armor, Runes, Weapons...
-    defp get_max_energy(%Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity) do
+    defp get_max_energy(%{Morale => %Morale{morale: morale}}) do
       inital_mana = 70
       mana_with_morale = inital_mana / 100 * (100 + morale)
       %Energy{mana: mana_with_morale, max_mana: inital_mana}
