@@ -105,6 +105,7 @@ defmodule Entice.Logic.CastingTest do
     cast_time = Skills.Bamph.cast_time
     assert {:ok, Skills.Bamph, ^cast_time} = Casting.cast_skill(eid, Skills.Bamph, 0, e1, self)
     assert_receive %{sender: ^eid, event: {:casting_cast_end, Skills.Bamph, 0, ^e1, _pid}}, (Skills.Bamph.cast_time + 100)
+    assert_receive {:skill_casted, %{entity_id: ^eid, skill: Skills.Bamph, slot: 0, target_entity_id: ^e1}}
 
     %Health{health: health_after_damage} = Entity.get_attribute(e1, Health)
     assert health_after_damage < health
