@@ -3,8 +3,6 @@ defmodule Entice.Logic.VitalsTest do
   use Entice.Logic.Attributes
   alias Entice.Entity
   alias Entice.Logic.Vitals
-  alias Entice.Logic.Vitals.Morale
-
 
   setup do
     {:ok, e1, _pid} = Entity.start
@@ -42,7 +40,7 @@ defmodule Entice.Logic.VitalsTest do
 
   test "health & energy are removed on termination", %{e1: e1} do
     Vitals.unregister(e1)
-    assert not Entity.has_attribute?(e1, Energy)
     assert not Entity.has_attribute?(e1, Health)
+    assert not Entity.has_attribute?(e1, Energy)
   end
 end
