@@ -54,7 +54,7 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.Morale
     alias Entice.Logic.Player.Level
 
-    def init(%Entity{attributes: %{Level => %Level{}}} = entity, {:entity_resurrected, percent_health, percent_energy}) do
+    def init(%Entity{attributes: %{Level => %Level{}, Morale => %Morale{}}} = entity, {:entity_resurrected, percent_health, percent_energy}) do
       {_, max_health: max_health} = get_max_health(entity)
       resurrected_health = max_health / 100 * percent_health
 
@@ -66,9 +66,10 @@ defmodule Entice.Logic.Vitals do
     end
 
     def init(%Entity{attributes: %{Level => %Level{}}} = entity, _args) do
-      {:ok, entity |> put_attribute(get_max_health(entity))
-                   |> put_attribute(get_max_energy(entity))
-                   |> put_attribute(%Morale { morale: 0 })}
+      {:ok, entity
+                   |> put_attribute(%Morale { morale: 0 })
+                   |> put_attribute(get_max_health(entity))
+                   |> put_attribute(get_max_energy(entity))}
     end
 
     def terminate(:remove_handler, entity) do
@@ -76,9 +77,10 @@ defmodule Entice.Logic.Vitals do
     end
 
     def terminate(_reason, entity) do
-      {:ok, entity |> remove_attribute(Health)
-                   |> remove_attribute(Energy)
-                   |> remove_attribute(Morale)}
+      {:ok, entity 
+                   |> remove_attribute(Morale)
+                   |> remove_attribute(Health)
+                   |> remove_attribute(Energy)}
     end
 
     def handle_event({:vitals_entity_damage, amount}, %Entity{attributes: %{Health => %Health{health: health}}} = entity) do
