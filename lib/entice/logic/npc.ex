@@ -3,7 +3,6 @@ defmodule Entice.Logic.Npc do
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
-  alias Entice.Logic.Player.MapInstance
   alias Entice.Logic.Player.Level
   alias Entice.Logic.Npc
   alias Entice.Logic.Vitals
