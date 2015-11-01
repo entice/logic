@@ -2,6 +2,8 @@ defmodule Entice.Logic.MapInstanceTest do
   use ExUnit.Case, async: true
   alias Entice.Entity
   alias Entice.Entity.Coordination
+  alias Entice.Entity.Test.Spy
+  alias Entice.Logic.Npc
   alias Entice.Logic.MapInstance
   alias Entice.Logic.Player
   alias Entice.Logic.Player.Name
@@ -10,8 +12,9 @@ defmodule Entice.Logic.MapInstanceTest do
 
 
   setup do
-    {:ok, _id, pid} = Entity.start
+    {:ok, entity_id, pid} = Entity.start
     MapInstance.register(pid, HeroesAscent)
+    Spy.register(entity_id, self)
     {:ok, [entity: pid]}
   end
 
@@ -21,18 +24,18 @@ defmodule Entice.Logic.MapInstanceTest do
   end
 
   test "player joins", %{entity: pid} do
-    {:ok, _id, player_pid} = Entity.start
+    {:ok, player_id, player_pid} = Entity.start
     Player.register(player_pid, HeroesAscent)
 
     {:ok, id1, e1} = Entity.start
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    MapInstance.add_player(pid, player_pid)
-
+    assert "Player added" = MapInstance.add_player(pid, player_id)
     m = %MapInstance{map: HeroesAscent, players: 1}
-    assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
-    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: ^player_pid, attributes: _}}}
+
+    assert 1 = Entity.get_attribute(pid, MapInstance).players
+    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: ^player_id, attributes: _}}}, 1000
   end
 
   test "npc joins", %{entity: pid} do
@@ -42,20 +45,22 @@ defmodule Entice.Logic.MapInstanceTest do
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    MapInstance.add_npc(pid, npc_info)
+    assert {"Npc added", npc_id, npc_pid} = MapInstance.add_npc(pid, npc_info)
 
-    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: npc_pid, attributes: _}}}
-    npc = Entity.fetch!(npc_pid)
-    assert %Entity{attributes: %{Name => %Name{name: "Gwen"}}} = npc
+    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: ^npc_id, attributes: attr}}}
+    name = Entity.get_attribute(npc_pid, Name)
+    assert %Name{name: "Gwen"} = name
   end
 
   test "player leaves", %{entity: pid} do
     {:ok, _id, player_pid_1} = Entity.start
     Player.register(player_pid_1, HeroesAscent)
-    {:ok, _id, player_pid_2} = Entity.start
+    {:ok, player_id, player_pid_2} = Entity.start
     Player.register(player_pid_2, HeroesAscent)
 
-    Spy.register(pid, self)
+    {:ok, id1, e1} = Entity.start
+    Coordination.register(e1, HeroesAscent)
+    Spy.register(e1, self)
 
     MapInstance.add_player(pid, player_pid_1)
     MapInstance.add_player(pid, player_pid_2)
@@ -65,7 +70,7 @@ defmodule Entice.Logic.MapInstanceTest do
 
     Entity.stop(player_pid_2)
 
-    assert_receive %{sender: _, event: {:entity_leave, %{entity_id: ^player_pid_2, attributes: _}}}
+    #assert_receive %{sender: _, event: {:entity_leave, %{entity_id: id, attributes: %Appearance{}}}}
     m = %MapInstance{map: HeroesAscent, players: 1}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
   end

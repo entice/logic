@@ -2,6 +2,7 @@ defmodule Entice.Logic.MapInstance do
   alias Entice.Entity
   alias Entice.Entity.Coordination
   alias Entice.Logic.MapInstance
+  alias Entice.Logic.Npc
 
   defstruct(
     players: 0,
@@ -23,28 +24,26 @@ defmodule Entice.Logic.MapInstance do
     use Entice.Entity.Behaviour
 
     def init(entity, map) do
-
       {:ok, entity |> put_attribute(%MapInstance{map: map})}
     end
 
-    def handle_call({:map_instance_player_join, player_entity_id}, %Entity{attributes: %MapInstance{map: map, players: players}} = entity) do
+    def handle_call({:map_instance_player_join, player_entity_id}, %Entity{attributes: %{MapInstance => %MapInstance{map: map, players: players}}} = entity) do
       Coordination.register(player_entity_id, map)
-      map_instance = %MapInstance{map: map, players: players+1}
-      {:ok, "Player added", entity |> update_attribute(MapInstance, fn(attrs) -> attrs |> Map.update(MapInstance, map_instance, fn(_) -> map_instance end) end)}
+      {:ok, "Player added", entity |> update_attribute(MapInstance, fn(m) -> %MapInstance{m | players: players+1} end)}
     end
 
-    def handle_call({:map_instance_npc_add, %{name: name}}, %Entity{attributes: %MapInstance{map: map}} = entity) do
-      {:ok, _id, pid} = Npc.spawn(map, name)
+    def handle_call({:map_instance_npc_add, %{name: name}}, %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
+      {:ok, id, pid} = Npc.spawn(map, name)
       Coordination.register(pid, map)
-      {:ok, "Npc added", entity}
+      {:ok, {"Npc added", id, pid}, entity}
     end
 
     def handle_call(event, entity), do: super(event, entity)
 
-    def handle_info({:entity_leave, %{entity_id: _, attributes: %{Appearance => _}}},
+    def handle_event({:entity_leave, %{entity_id: _, attributes: %{Appearance => _}}},
       %Entity{attributes: %MapInstance{map: map, players: players}} = entity) do
-      map_instance = %MapInstance{map: map, players: players-1}
-      entity = entity |> update_attribute(MapInstance, fn(attrs) -> attrs |> Map.update(MapInstance, map_instance, fn(_) -> map_instance end) end)
+      IO.ps "sadafe"
+      entity = entity |> update_attribute(MapInstance, fn(m) -> %MapInstance{m | players: players-1} end)
       case players-1 do
         0 ->
           stop_all_entities(map) #Should I stop coordination as well?
