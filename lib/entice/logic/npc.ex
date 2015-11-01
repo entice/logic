@@ -20,6 +20,14 @@ defmodule Entice.Logic.Npc do
     :ok
   end
 
+  def spawn(map, name) do
+    {:ok, id, pid} = Entity.start()
+    Npc.register(id, map, name)
+    Vitals.register(id)
+    {:ok, id, pid}
+  end
+
+
   def register(entity, map, name \\ "Dhuum", npc \\ %Npc{}) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
