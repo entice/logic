@@ -13,6 +13,12 @@ defmodule Entice.Logic.MapInstance do
   def unregister(entity),
   do: Entity.remove_behaviour(entity, MapInstance.Behaviour)
 
+  def add_npc(entity, %{name: name}),
+  do: Entity.call_behaviour(entity, MapInstance.Behaviour, {:map_instance_npc_add, %{name: name}})
+
+  def add_player(entity, player_pid),
+  do: Entity.call_behaviour(entity, MapInstance.Behaviour, {:map_instance_player_join, player_pid})
+
   defmodule Behaviour do
     use Entice.Entity.Behaviour
 
@@ -27,7 +33,7 @@ defmodule Entice.Logic.MapInstance do
       {:ok, "Player added", entity |> update_attribute(MapInstance, fn(attrs) -> attrs |> Map.update(MapInstance, map_instance, fn(_) -> map_instance end) end)}
     end
 
-    def handle_call({:map_instance_npc_join, %{name: name}}, %Entity{attributes: %MapInstance{map: map}} = entity) do
+    def handle_call({:map_instance_npc_add, %{name: name}}, %Entity{attributes: %MapInstance{map: map}} = entity) do
       {:ok, _id, pid} = Npc.spawn(map, name)
       Coordination.register(pid, map)
       {:ok, "Npc added", entity}
@@ -35,7 +41,7 @@ defmodule Entice.Logic.MapInstance do
 
     def handle_call(event, entity), do: super(event, entity)
 
-    def handle_event({:entity_leave, %{entity_id: _, attributes: %{Appearance => _}}},
+    def handle_info({:entity_leave, %{entity_id: _, attributes: %{Appearance => _}}},
       %Entity{attributes: %MapInstance{map: map, players: players}} = entity) do
       map_instance = %MapInstance{map: map, players: players-1}
       entity = entity |> update_attribute(MapInstance, fn(attrs) -> attrs |> Map.update(MapInstance, map_instance, fn(_) -> map_instance end) end)

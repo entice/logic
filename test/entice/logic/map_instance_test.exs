@@ -28,7 +28,7 @@ defmodule Entice.Logic.MapInstanceTest do
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    Entity.call_behaviour(pid, MapInstance.Behaviour, {:map_instance_player_join, player_pid})
+    MapInstance.add_player(pid, player_pid)
 
     m = %MapInstance{map: HeroesAscent, players: 1}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
@@ -42,7 +42,7 @@ defmodule Entice.Logic.MapInstanceTest do
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    Entity.call_behaviour(pid, MapInstance.Behaviour, {:map_instance_npc_join, npc_info})
+    MapInstance.add_npc(pid, npc_info)
 
     assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: npc_pid, attributes: _}}}
     npc = Entity.fetch!(npc_pid)
@@ -57,8 +57,8 @@ defmodule Entice.Logic.MapInstanceTest do
 
     Spy.register(pid, self)
 
-    Entity.call_behaviour(pid, MapInstance.Behaviour, {:map_instance_player_join, player_pid_1})
-    Entity.call_behaviour(pid, MapInstance.Behaviour, {:map_instance_player_join, player_pid_2})
+    MapInstance.add_player(pid, player_pid_1)
+    MapInstance.add_player(pid, player_pid_2)
 
     m = %MapInstance{map: HeroesAscent, players: 2}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
@@ -76,7 +76,7 @@ defmodule Entice.Logic.MapInstanceTest do
 
     Spy.register(pid, self)
 
-    Entity.call_behaviour(pid, MapInstance.Behaviour, {:map_instance_player_join, player_pid_1})
+    MapInstance.add_player(pid, player_pid_1)
 
     m = %MapInstance{map: HeroesAscent, players: 1}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
