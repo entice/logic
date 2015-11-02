@@ -9,14 +9,11 @@ defmodule Entice.Logic.Vitals do
   defmodule Health, do: defstruct(
     health: 500, max_health: 620)
 
-
   defmodule Energy, do: defstruct(
     mana: 50, max_mana: 70)
 
-
   defmodule Morale, do: defstruct(
     morale: 0)
-
 
   def register(entity_id),
   do: Entity.put_behaviour(entity_id, Vitals.AliveBehaviour, [])
@@ -27,9 +24,7 @@ defmodule Entice.Logic.Vitals do
     Entity.remove_behaviour(entity_id, Vitals.DeadBehaviour)
   end
 
-
   # External API
-
 
   @doc """
   Used to make damage on a Entity
@@ -39,7 +34,6 @@ defmodule Entice.Logic.Vitals do
   def damage(entity, amount),
   do: Coordination.notify(entity, {:vitals_entity_damage, amount})
 
-
   @doc """
   Heals a entity with the given amount
   Health of Entity is recalculated
@@ -47,14 +41,12 @@ defmodule Entice.Logic.Vitals do
   def heal(entity, amount),
   do: Coordination.notify(entity, {:vitals_entity_heal, amount})
 
-
   @doc """
   Resurrects an entity with a Percentage of Life Points and Energy
   New Health and Energy depends on Morale
   """
   def resurrect(entity, percent_health, percent_energy),
   do: Coordination.notify(entity, {:vitals_entity_resurrect, percent_health, percent_energy})
-
 
   defmodule AliveBehaviour do
     use Entice.Entity.Behaviour
@@ -71,8 +63,8 @@ defmodule Entice.Logic.Vitals do
       %Energy{max_mana: max_mana} = get_max_energy(entity.attributes)
       resurrected_mana = max_mana / 100 * percent_energy
 
-      {:ok, entity |> update_attribute(Health, fn health -> %Health{ health | health: resurrected_health } end)
-                   |> update_attribute(Energy, fn energy -> %Energy{ energy | mana: resurrected_mana } end)}
+      {:ok, entity |> put_attribute(%Health{health: resurrected_health, max_health: max_health})
+                   |> put_attribute(%Energy{mana: resurrected_mana, max_mana: max_mana})}
     end
 
     def init(%Entity{attributes: %{Level => %Level{}}} = entity, _args) do
@@ -135,7 +127,7 @@ defmodule Entice.Logic.Vitals do
     defp get_max_energy(%{Morale => %Morale{morale: morale}}) do
       inital_mana = 70
       mana_with_morale = inital_mana / 100 * (100 + morale)
-      %Energy{mana: mana_with_morale, max_mana: inital_mana}
+      %Energy{mana: mana_with_morale, max_mana: mana_with_morale}
     end
   end
 
@@ -149,7 +141,7 @@ defmodule Entice.Logic.Vitals do
       if(new_morale < -60) do #-60 is max negative morale
         new_morale = -60
       end
-      {:ok, entity |> update_attribute(Morale, fn morale -> %Morale{ morale | morale: new_morale } end)}
+      {:ok, entity |> put_attribute(%Morale{morale: new_morale})}
     end
 
 
@@ -157,6 +149,9 @@ defmodule Entice.Logic.Vitals do
       {:become, Vitals.AliveBehaviour, {:entity_resurrected, percent_health, percent_energy}, entity}
     end
 
+    def terminate({:become_handler, AliveBehaviour, _}, entity) do
+      {:ok, entity}
+    end
 
     def terminate(_reason, entity) do
       {:ok, entity |> remove_attribute(Morale)
