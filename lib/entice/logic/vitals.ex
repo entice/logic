@@ -6,7 +6,6 @@ defmodule Entice.Logic.Vitals do
   alias Entice.Logic.Vitals
   alias Entice.Entity.Coordination
 
-
   defmodule Health, do: defstruct(
     health: 500, max_health: 620)
 
@@ -90,7 +89,7 @@ defmodule Entice.Logic.Vitals do
     def handle_event({:vitals_entity_damage, amount}, %Entity{attributes: %{Health => %Health{health: health}}} = entity) do
       new_health = health - amount
       cond do
-        new_health <= 0 -> {:become, Vitals.DeadBehaviour, {entity, :entity_died}, entity |> update_attribute(Health, fn health -> %Health{ health | health: 0 } end)}
+        new_health <= 0 -> {:become, Vitals.DeadBehaviour, :entity_died, entity |> update_attribute(Health, fn health -> %Health{ health | health: 0 } end)}
         new_health > 0 -> {:ok, entity |> update_attribute(Health, fn health -> %Health{ health | health: new_health} end)}
       end
     end
@@ -145,10 +144,12 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.Morale
 
     def init(%Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity, :entity_died) do
-      cond do
-        morale > -60 -> {:ok, entity |> update_attribute(Morale, fn morale -> %Morale{ morale | morale: (morale - 15) } end)}
-        morale = -60 -> {:ok, entity}
+      #entity.id |> Coordination.notify_locally({:entity_dead, %{entity_id: entity.id, attributes: entity.attributes}})
+      new_morale = morale - 15
+      if(new_morale < -60) do #-60 is max negative morale
+        new_morale = -60
       end
+      {:ok, entity |> update_attribute(Morale, fn morale -> %Morale{ morale | morale: new_morale } end)}
     end
 
 

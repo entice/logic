@@ -71,4 +71,12 @@ defmodule Entice.Logic.VitalsTest do
     Vitals.damage(e1, 1000)
     assert Entity.has_behaviour?(e1, DeadBehaviour)
   end
+
+  test "ressurect entity with -15 morale", %{e1: e1} do
+    Vitals.damage(e1, 1000)
+    assert Entity.has_behaviour?(e1, DeadBehaviour)
+    Vitals.resurrect(e1, 50, 50)
+    assert Entity.has_behaviour?(e1, AliveBehaviour)
+    assert {:ok, %Morale{morale: -15.0}} = Entity.fetch_attribute(e1, Morale)
+  end
 end
