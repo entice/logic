@@ -37,10 +37,15 @@ defmodule Entice.Logic.VitalsTest do
     assert Entity.has_attribute?(e1, Energy)
   end
 
+  test "entity has morale", %{e1: e1} do
+    assert Entity.has_attribute?(e1, Morale)
+  end
 
-  test "health & energy are removed on termination", %{e1: e1} do
+
+  test "health & energy & morale are removed on termination", %{e1: e1} do
     Vitals.unregister(e1)
     assert not Entity.has_attribute?(e1, Health)
     assert not Entity.has_attribute?(e1, Energy)
+    assert not Entity.has_attribute?(e1, Morale)
   end
 end
