@@ -136,7 +136,7 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.Morale
 
     def init(%Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity, :entity_died) do
-      #entity.id |> Coordination.notify_locally({:entity_dead, %{entity_id: entity.id, attributes: entity.attributes}})
+      entity.id |> Coordination.notify_locally({:entity_dead, %{entity_id: entity.id, attributes: entity.attributes}})
       new_morale = morale - 15
       if(new_morale < -60) do #-60 is max negative morale
         new_morale = -60
