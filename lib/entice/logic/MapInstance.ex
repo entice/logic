@@ -3,6 +3,7 @@ defmodule Entice.Logic.MapInstance do
   alias Entice.Entity.Coordination
   alias Entice.Logic.MapInstance
   alias Entice.Logic.Npc
+  alias Entice.Logic.Player.Appearance
 
   defstruct(
     players: 0,
@@ -40,9 +41,7 @@ defmodule Entice.Logic.MapInstance do
 
     def handle_call(event, entity), do: super(event, entity)
 
-    def handle_event({:entity_leave, %{entity_id: _, attributes: %{Appearance => _}}},
-      %Entity{attributes: %MapInstance{map: map, players: players}} = entity) do
-      IO.ps "sadafe"
+    def handle_event({:entity_leave, %{attributes: %{Appearance => _}}} = event, %Entity{attributes: %{MapInstance => %MapInstance{map: map, players: players}}} = entity) do
       entity = entity |> update_attribute(MapInstance, fn(m) -> %MapInstance{m | players: players-1} end)
       case players-1 do
         0 ->
@@ -55,15 +54,19 @@ defmodule Entice.Logic.MapInstance do
       end
     end
 
+    def handle_event(event, entity) do
+      {:ok, entity}
+    end
+
     def terminate(_reason, entity) do
       {:ok, entity |> remove_attribute(MapInstance)}
     end
 
     defp stop_all_entities(map) do
-      entity_ids = Coordination.get_entity_ids(map)
-      for eid <- entity_ids do
-        Entity.stop(eid)
-      end
+      # entity_ids = Coordination.get_entity_ids(map)
+      # for eid <- entity_ids do
+      #   Entity.stop(eid)
+      # end
     end
   end
 end
