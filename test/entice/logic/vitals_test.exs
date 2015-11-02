@@ -67,10 +67,8 @@ defmodule Entice.Logic.VitalsTest do
     assert {:ok, %Health{health: 480.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
   end
 
-  """
   test "entity dies and has negative morale", %{e1: e1} do
     Vitals.damage(e1, 1000)
     assert Entity.has_behaviour?(e1, DeadBehaviour)
   end
-  """
 end

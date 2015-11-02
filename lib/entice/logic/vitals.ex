@@ -145,11 +145,10 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.Morale
 
     def init(%Entity{attributes: %{Morale => %Morale{morale: morale}}} = entity, :entity_died) do
-      if(morale > -60) do
-        new_morale = morale - 15
+      cond do
+        morale > -60 -> {:ok, entity |> update_attribute(Morale, fn morale -> %Morale{ morale | morale: (morale - 15) } end)}
+        morale = -60 -> {:ok, entity}
       end
-
-      {:ok, entity |> update_attribute(Morale, fn morale -> %Morale{ morale | morale: new_morale} end)}
     end
 
 
