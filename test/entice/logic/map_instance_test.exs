@@ -1,95 +1,93 @@
 defmodule Entice.Logic.MapInstanceTest do
   use ExUnit.Case, async: true
+  use Entice.Logic.Attributes
+  use Entice.Logic.Maps
   alias Entice.Entity
   alias Entice.Entity.Coordination
+  alias Entice.Entity.Suicide
   alias Entice.Entity.Test.Spy
   alias Entice.Logic.MapInstance
   alias Entice.Logic.Player
-  alias Entice.Logic.Player.Name
-  use Entice.Logic.Maps
   @moduletag :map_instance
 
 
   setup do
-    {:ok, _entity_id, pid} = Entity.start
-    MapInstance.register(pid, HeroesAscent)
-    {:ok, [entity: pid]}
+    {:ok, entity_id, _pid} = Entity.start
+    MapInstance.register(entity_id, HeroesAscent)
+    {:ok, %{entity_id: entity_id}}
   end
 
-  test "register", %{entity: pid} do
+  test "register", %{entity_id: entity_id} do
     m = %MapInstance{map: HeroesAscent, players: 0}
-    assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
+    assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
   end
 
-  test "player joins", %{entity: pid} do
-    {:ok, player_id, player_pid} = Entity.start
-    Player.register(player_pid, HeroesAscent)
+  test "player joins", %{entity_id: entity_id} do
+    {:ok, player_id, _pid} = Entity.start
+    Player.register(player_id, HeroesAscent)
 
-    {:ok, id1, e1} = Entity.start
+    {:ok, e1, _pid} = Entity.start
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    assert "Player added" = MapInstance.add_player(pid, player_id)
+    MapInstance.add_player(entity_id, player_id)
 
-    assert 1 = Entity.get_attribute(pid, MapInstance).players
-    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: ^player_id, attributes: _}}}, 1000
+    assert 1 = Entity.get_attribute(entity_id, MapInstance).players
+    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: ^player_id, attributes: _}}}
   end
 
-  test "npc joins", %{entity: pid} do
-    npc_info = %{name: "Gwen"}
-
-    {:ok, id1, e1} = Entity.start
+  test "npc joins", %{entity_id: entity_id} do
+    {:ok, e1, _pid} = Entity.start
     Coordination.register(e1, HeroesAscent)
     Spy.register(e1, self)
 
-    assert {"Npc added", npc_id, npc_pid} = MapInstance.add_npc(pid, npc_info)
+    MapInstance.add_npc(entity_id, "Gwen", :gwen, %Position{})
 
-    assert_receive %{sender: ^id1, event: {:entity_join, %{entity_id: ^npc_id, attributes: _}}}
-    name = Entity.get_attribute(npc_pid, Name)
-    assert %Name{name: "Gwen"} = name
+    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}
   end
 
-  test "player leaves", %{entity: pid} do
+  test "player leaves", %{entity_id: entity_id} do
     {:ok, _id, player_pid_1} = Entity.start
     Player.register(player_pid_1, HeroesAscent)
     {:ok, player_id_2, player_pid_2} = Entity.start
     Player.register(player_pid_2, HeroesAscent)
 
-    Coordination.register_observer(pid, HeroesAscent)
-    Spy.register(pid, self)
+    Coordination.register_observer(self, HeroesAscent)
+    Spy.register(entity_id, self)
 
-    MapInstance.add_player(pid, player_pid_1)
-    MapInstance.add_player(pid, player_pid_2)
+    MapInstance.add_player(entity_id, player_pid_1)
+    MapInstance.add_player(entity_id, player_pid_2)
 
     m = %MapInstance{map: HeroesAscent, players: 2}
-    assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
+    assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
 
     Entity.stop(player_id_2)
 
     assert_receive %{sender: _, event: {:entity_leave, %{entity_id: ^player_id_2}}}
-    assert 1 = Entity.get_attribute(pid, MapInstance).players
+    assert 1 = Entity.get_attribute(entity_id, MapInstance).players
   end
 
-  test "last player leaves", %{entity: pid} do
-    {:ok, player_id_1, player_pid_1} = Entity.start
-    Player.register(player_pid_1, HeroesAscent)
+  test "last player leaves", %{entity_id: entity_id} do
+    {:ok, player_id, _pid} = Entity.start
+    Player.register(player_id, HeroesAscent)
 
-    Coordination.register_observer(pid, HeroesAscent)
-    Spy.register(pid, self)
+    Coordination.register_observer(self, HeroesAscent)
 
-    MapInstance.add_player(pid, player_pid_1)
+    MapInstance.add_player(entity_id, player_id)
 
     m = %MapInstance{map: HeroesAscent, players: 1}
-    assert {:ok, ^m} = Entity.fetch_attribute(pid, MapInstance)
+    assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
 
-    Entity.stop(player_id_1)
+    Entity.stop(player_id)
 
-    assert_receive %{sender: _, event: {:entity_leave, %{entity_id: ^player_id_1}}}
-    assert :error = Entity.fetch_attribute(pid, MapInstance)
+    poison_pill = Suicide.poison_pill_message
+
+    assert_receive ^poison_pill
+    assert not Entity.exists?(entity_id)
   end
 
-  test "unregister", %{entity: pid} do
-    MapInstance.unregister(pid)
-    assert :error = Entity.fetch_attribute(pid, MapInstance)
+  test "unregister", %{entity_id: entity_id} do
+    MapInstance.unregister(entity_id)
+    assert :error = Entity.fetch_attribute(entity_id, MapInstance)
   end
 end

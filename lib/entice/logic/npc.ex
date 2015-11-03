@@ -1,5 +1,6 @@
 defmodule Entice.Logic.Npc do
   use Entice.Logic.Map
+  alias Entice.Utils.Geom.Coord
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
@@ -7,34 +8,27 @@ defmodule Entice.Logic.Npc do
   alias Entice.Logic.Npc
   alias Entice.Logic.Vitals
 
+
   defstruct(npc_model_id: :dhuum)
 
-  # TODO remove when we have maps
-  @doc "Temporarily here. Should be replaced by map-based implementation... load from DB?"
-  def spawn_all do
-    for map <- Maps.get_maps do
-      {:ok, id, _pid} = Entity.start()
-      Npc.register(id, map, "Me does nothing :3")
-      Vitals.register(id)
-    end
-    :ok
-  end
 
-  def spawn(map, name) do
+  def spawn(map, name, model, %Position{} = position)
+  when is_binary(name) and is_atom(model) do
     {:ok, id, pid} = Entity.start()
-    Npc.register(id, map, name)
+    Npc.register(id, map, name, model, position)
     Vitals.register(id)
     {:ok, id, pid}
   end
 
 
-  def register(entity, map, name \\ "Dhuum", npc \\ %Npc{}) do
+  def register(entity, map, name, model, %Position{} = position)
+  when is_binary(name) and is_atom(model) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
-      |> Map.put(Name, %Name{name: name})
-      |> Map.put(Position, %Position{pos: map.spawn})
-      |> Map.put(Npc, npc)
-      |> Map.put(Level, %Level{level: 20})
+      |> Map.put(Name,     %Name{name: name})
+      |> Map.put(Position, position)
+      |> Map.put(Npc,      %Npc{npc_model_id: model})
+      |> Map.put(Level,    %Level{level: 20})
     end)
   end
 
