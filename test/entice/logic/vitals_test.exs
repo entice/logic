@@ -28,11 +28,11 @@ defmodule Entice.Logic.VitalsTest do
   end
 
   test "entity has health level 20", %{e1: e1} do
-    assert {:ok, %Health{health: 480.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Health{health: 480, max_health: 480}} = Entity.fetch_attribute(e1, Health)
   end
 
   test "entity has health level 3", %{e2: e2} do
-    assert {:ok, %Health{health: 140.0, max_health: 140.0}} = Entity.fetch_attribute(e2, Health)
+    assert {:ok, %Health{health: 140, max_health: 140}} = Entity.fetch_attribute(e2, Health)
   end
 
   test "entity has mana", %{e1: e1} do
@@ -52,19 +52,19 @@ defmodule Entice.Logic.VitalsTest do
 
   test "do damage on entity", %{e1: e1} do
     Vitals.damage(e1, 140)
-    assert {:ok, %Health{health: 340.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Health{health: 340, max_health: 480}} = Entity.fetch_attribute(e1, Health)
   end
 
   test "do damage on entity and heal the entity", %{e1: e1} do
     Vitals.damage(e1, 100)
-    assert {:ok, %Health{health: 380.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Health{health: 380, max_health: 480}} = Entity.fetch_attribute(e1, Health)
     Vitals.heal(e1, 100)
-    assert {:ok, %Health{health: 480.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Health{health: 480, max_health: 480}} = Entity.fetch_attribute(e1, Health)
   end
 
   test "heal entity and check if health <= max_health", %{e1: e1} do
     Vitals.heal(e1, 200)
-    assert {:ok, %Health{health: 480.0, max_health: 480.0}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Health{health: 480, max_health: 480}} = Entity.fetch_attribute(e1, Health)
   end
 
   test "entity dies and has -15 morale", %{e1: e1} do
@@ -87,8 +87,8 @@ defmodule Entice.Logic.VitalsTest do
     Vitals.resurrect(e1, 50, 50)
     assert Entity.has_behaviour?(e1, AliveBehaviour)
     assert {:ok, %Morale{morale: -15}} = Entity.fetch_attribute(e1, Morale)
-    assert {:ok, %Health{health: 204.0, max_health: 408.0}} = Entity.fetch_attribute(e1, Health)
-    assert {:ok, %Energy{mana: 29.75, max_mana: 59.49999999999999}} = Entity.fetch_attribute(e1, Energy)
+    assert {:ok, %Health{health: 204, max_health: 408}} = Entity.fetch_attribute(e1, Health)
+    assert {:ok, %Energy{mana: 30, max_mana: 59}} = Entity.fetch_attribute(e1, Energy)
   end
 
 end

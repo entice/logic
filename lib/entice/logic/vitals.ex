@@ -58,10 +58,10 @@ defmodule Entice.Logic.Vitals do
 
     def init(%Entity{attributes: %{Level => %Level{}, Morale => %Morale{}}} = entity, {:entity_resurrected, percent_health, percent_energy}) do
       %Health{max_health: max_health} = get_max_health(entity.attributes)
-      resurrected_health = max_health / 100 * percent_health
+      resurrected_health = round(max_health / 100 * percent_health)
 
       %Energy{max_mana: max_mana} = get_max_energy(entity.attributes)
-      resurrected_mana = max_mana / 100 * percent_energy
+      resurrected_mana = round(max_mana / 100 * percent_energy)
 
       {:ok, entity |> put_attribute(%Health{health: resurrected_health, max_health: max_health})
                    |> put_attribute(%Energy{mana: resurrected_mana, max_mana: max_mana})}
@@ -113,7 +113,7 @@ defmodule Entice.Logic.Vitals do
 
     defp get_max_health(%{Level => %Level{level: level}, Morale => %Morale{morale: morale}}) do
       health = calc_life_points_for_level(level)
-      max_health_with_morale = health / 100 * (100 + morale)
+      max_health_with_morale = round(health / 100 * (100 + morale))
       %Health{health: max_health_with_morale, max_health: max_health_with_morale}
     end
 
@@ -126,7 +126,7 @@ defmodule Entice.Logic.Vitals do
     #TODO: Take care of Armor, Runes, Weapons...
     defp get_max_energy(%{Morale => %Morale{morale: morale}}) do
       inital_mana = 70
-      mana_with_morale = inital_mana / 100 * (100 + morale)
+      mana_with_morale = round(inital_mana / 100 * (100 + morale))
       %Energy{mana: mana_with_morale, max_mana: mana_with_morale}
     end
   end
@@ -143,7 +143,6 @@ defmodule Entice.Logic.Vitals do
       end
       {:ok, entity |> put_attribute(%Morale{morale: new_morale})}
     end
-
 
     def handle_event({:vitals_entity_resurrect, percent_health, percent_energy}, %Entity{attributes: %{Health => %Health{}, Energy=> %Energy{}}} = entity) do
       {:become, Vitals.AliveBehaviour, {:entity_resurrected, percent_health, percent_energy}, entity}
