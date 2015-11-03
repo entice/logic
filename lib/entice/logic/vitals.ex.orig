@@ -155,9 +155,15 @@ defmodule Entice.Logic.Vitals do
       {:ok, entity |> put_attribute(%Morale{morale: new_morale})}
     end
 
+<<<<<<< HEAD
+    def handle_event({:vitals_entity_resurrect, percent_health, percent_energy}, %Entity{attributes: %{Health => %Health{}, Energy=> %Energy{}}} = entity) do
+      {:become, Vitals.AliveBehaviour, {:entity_resurrected, percent_health, percent_energy}, entity}
+    end
+=======
 
     def handle_event({:vitals_entity_resurrect, percent_health, percent_energy}, entity),
     do: {:become, AliveBehaviour, {:entity_resurrected, percent_health, percent_energy}, entity}
+>>>>>>> 8e6c5d4a879921c8290337b22934464997ee843a
 
 
     def terminate({:become_handler, AliveBehaviour, _}, entity),
