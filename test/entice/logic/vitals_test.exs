@@ -97,4 +97,9 @@ defmodule Entice.Logic.VitalsTest do
     assert {:ok, %Energy{mana: 30, max_mana: 59}} = Entity.fetch_attribute(e1, Energy)
   end
 
+
+  test "killing an entity", %{e1: e1} do
+    Vitals.kill(e1)
+    assert Entity.has_behaviour?(e1, DeadBehaviour)
+  end
 end

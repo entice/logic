@@ -44,6 +44,11 @@ defmodule Entice.Logic.Vitals do
   do: Coordination.notify(entity, {:vitals_entity_heal, amount})
 
 
+  @doc "Kills an entity, reduces the lifepoints to 0."
+  def kill(entity),
+  do: Coordination.notify(entity, :vitals_entity_kill)
+
+
   @doc "Resurrect with percentage of health and energy. (Entity needs to be dead :P)"
   def resurrect(entity, percent_health, percent_energy),
   do: Coordination.notify(entity, {:vitals_entity_resurrect, percent_health, percent_energy})
@@ -95,10 +100,9 @@ defmodule Entice.Logic.Vitals do
 
       new_health = health - amount
       cond do
+        new_health <= 0 -> {:become, DeadBehaviour, :entity_died, entity}
         new_health >  0 ->
           {:ok, entity |> update_attribute(Health, fn health -> %Health{health | health: new_health} end)}
-        new_health <= 0 ->
-          {:become, DeadBehaviour, :entity_died, entity |> update_attribute(Health, fn health -> %Health{health | health: 0} end)}
       end
     end
 
@@ -111,6 +115,8 @@ defmodule Entice.Logic.Vitals do
 
       {:ok, entity |> update_attribute(Health, fn health -> %Health{health | health: new_health} end)}
     end
+
+    def handle_event(:vitals_entity_kill, entity), do: {:become, DeadBehaviour, :entity_died, entity}
 
 
     def terminate({:become_handler, DeadBehaviour, _}, entity),
@@ -163,7 +169,10 @@ defmodule Entice.Logic.Vitals do
       if new_morale < -60, #-60 is max negative morale
       do: new_morale = -60
 
-      {:ok, entity |> put_attribute(%Morale{morale: new_morale})}
+      {:ok,
+        entity
+        |> put_attribute(%Morale{morale: new_morale})
+        |> update_attribute(Health, fn health -> %Health{health | health: 0} end)}
     end
 
 
