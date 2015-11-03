@@ -2,6 +2,7 @@ defmodule Entice.Logic.VitalsTest do
   use ExUnit.Case, async: true
   use Entice.Logic.Attributes
   alias Entice.Entity
+  alias Entice.Entity.Coordination
   alias Entice.Logic.Vitals
   alias Entice.Logic.Vitals.AliveBehaviour
   alias Entice.Logic.Vitals.DeadBehaviour
@@ -74,9 +75,14 @@ defmodule Entice.Logic.VitalsTest do
   end
 
   test "resurrect entity with -15 morale", %{e1: e1} do
+    Coordination.register_observer(self, __MODULE__)
+    Coordination.register(e1, __MODULE__)
     Vitals.damage(e1, 1000)
+    assert_receive {:entity_dead, %{entity_id: ^e1, attributes: %{}}}
     assert Entity.has_behaviour?(e1, DeadBehaviour)
+
     Vitals.resurrect(e1, 50, 50)
+    assert_receive {:entity_resurrected, %{entity_id: ^e1, attributes: %{}}}
     assert Entity.has_behaviour?(e1, AliveBehaviour)
     assert {:ok, %Morale{morale: -15}} = Entity.fetch_attribute(e1, Morale)
   end

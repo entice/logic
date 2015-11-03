@@ -1,6 +1,14 @@
 defmodule Entice.Logic.Vitals do
   @moduledoc """
   Responsible for the entities vital stats like (health, mana, regen, degen)
+
+  If and entity dies, a local broadcast will be send that looks like this:
+
+      {:entity_dead, %{entity_id: entity_id, attributes: attribs}}
+
+  If the entity then gets resurrected, a similar message will be broadcasted:
+
+      {:entity_resurrected, %{entity_id: entity_id, attributes: attribs}}
   """
   alias Entice.Entity
   alias Entice.Logic.Vitals
@@ -52,6 +60,9 @@ defmodule Entice.Logic.Vitals do
     def init(
         %Entity{attributes: %{Level => _, Morale => _}} = entity,
         {:entity_resurrected, percent_health, percent_energy}) do
+      entity.id |> Coordination.notify_locally({
+        :entity_resurrected,
+        %{entity_id: entity.id, attributes: entity.attributes}})
 
       %Health{max_health: max_health} = get_max_health(entity.attributes)
       resurrected_health = round(max_health / 100 * percent_health)
