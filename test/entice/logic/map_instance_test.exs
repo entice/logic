@@ -12,9 +12,9 @@ defmodule Entice.Logic.MapInstanceTest do
 
 
   setup do
-    {:ok, entity_id, _pid} = Entity.start
+    {:ok, entity_id, entity_pid} = Entity.start
     MapInstance.register(entity_id, HeroesAscent)
-    {:ok, %{entity_id: entity_id}}
+    {:ok, %{entity_id: entity_id, entity_pid: entity_pid}}
   end
 
   test "register", %{entity_id: entity_id} do
@@ -46,20 +46,19 @@ defmodule Entice.Logic.MapInstanceTest do
     assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}
   end
 
-  test "player leaves", %{entity_id: entity_id} do
-    {:ok, _id, player_pid_1} = Entity.start
-    Player.register(player_pid_1, HeroesAscent)
+  test "player leaves", %{entity_id: entity_id, entity_pid: entity_pid} do
+    {:ok, player_id_1, player_pid_1} = Entity.start
+    Player.register(player_id_1, HeroesAscent)
     {:ok, player_id_2, player_pid_2} = Entity.start
-    Player.register(player_pid_2, HeroesAscent)
+    Player.register(player_id_2, HeroesAscent)
 
-    Coordination.register_observer(self, HeroesAscent)
-    Spy.register(entity_id, self)
+    Coordination.register_observer(entity_pid, HeroesAscent)
+    Spy.register(entity_pid, self)
 
-    MapInstance.add_player(entity_id, player_pid_1)
-    MapInstance.add_player(entity_id, player_pid_2)
+    MapInstance.add_player(entity_id, player_id_1)
+    MapInstance.add_player(entity_id, player_id_2)
 
-    m = %MapInstance{map: HeroesAscent, players: 2}
-    assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
+    assert 2 = Entity.get_attribute(entity_id, MapInstance).players
 
     Entity.stop(player_id_2)
 
@@ -67,10 +66,11 @@ defmodule Entice.Logic.MapInstanceTest do
     assert 1 = Entity.get_attribute(entity_id, MapInstance).players
   end
 
-  test "last player leaves", %{entity_id: entity_id} do
+  test "last player leaves", %{entity_id: entity_id, entity_pid: entity_pid} do
     {:ok, player_id, _pid} = Entity.start
     Player.register(player_id, HeroesAscent)
 
+    Coordination.register_observer(entity_pid, HeroesAscent)
     Coordination.register_observer(self, HeroesAscent)
 
     MapInstance.add_player(entity_id, player_id)
