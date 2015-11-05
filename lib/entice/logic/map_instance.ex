@@ -33,6 +33,7 @@ defmodule Entice.Logic.MapInstance do
 
   defmodule Behaviour do
     use Entice.Entity.Behaviour
+    alias Entice.Logic.Player.Appearance
 
     def init(entity, map),
     do: {:ok, entity |> put_attribute(%MapInstance{map: map})}
@@ -67,13 +68,7 @@ defmodule Entice.Logic.MapInstance do
     end
 
 
-    def terminate(_reason, entity) do
-      {:ok, entity |> remove_attribute(MapInstance)}
-    end
-
-
-    defp stop_all_entities(map) do
-      entity_ids = Coordination.notify_all(map, Suicide.poison_pill_message)
-    end
+    def terminate(_reason, entity),
+    do: {:ok, entity |> remove_attribute(MapInstance)}
   end
 end
