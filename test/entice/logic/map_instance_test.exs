@@ -79,6 +79,7 @@ defmodule Entice.Logic.MapInstanceTest do
     Player.register(player_id, TestMap)
 
     Process.monitor(entity_pid)
+    Coordination.register_observer(entity_pid, TestMap)
     Coordination.register_observer(self, TestMap)
 
     MapInstance.add_player(entity_id, player_id)
