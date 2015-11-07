@@ -1,11 +1,10 @@
 defmodule Entice.Logic.MapInstance do
+  use Entice.Logic.Attributes
   alias Entice.Entity
   alias Entice.Entity.Coordination
   alias Entice.Entity.Suicide
   alias Entice.Logic.MapInstance
   alias Entice.Logic.Npc
-  alias Entice.Logic.Player.Appearance
-  alias Entice.Logic.Player.Position
 
 
   defstruct(players: 0, map: nil)
