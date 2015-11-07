@@ -35,8 +35,10 @@ defmodule Entice.Logic.MapInstance do
     use Entice.Entity.Behaviour
     alias Entice.Logic.Player.Appearance
 
-    def init(entity, map),
-    do: {:ok, entity |> put_attribute(%MapInstance{map: map})}
+    def init(entity, map) do
+      Coordination.register_observer(self, map) # TODO change map to something else if we have multiple instances
+      {:ok, entity |> put_attribute(%MapInstance{map: map})}
+    end
 
 
     def handle_event(
@@ -49,13 +51,13 @@ defmodule Entice.Logic.MapInstance do
     def handle_event(
         {:map_instance_npc_add, %{name: name, model: model, position: position}},
         %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
-      {:ok, id, pid} = Npc.spawn(map, name, model, position)
-      Coordination.register(pid, map) # TODO change map to something else if we have multiple instances
+      {:ok, eid, _pid} = Npc.spawn(name, model, position)
+      Coordination.register(eid, map) # TODO change map to something else if we have multiple instances
       {:ok, entity}
     end
 
     def handle_event(
-        {:entity_leave, %{attributes: %{Appearance => _}}} = event,
+        {:entity_leave, %{attributes: %{Appearance => _}}},
         %Entity{attributes: %{MapInstance => %MapInstance{map: map, players: players}}} = entity) do
       new_entity = entity |> update_attribute(MapInstance, fn instance -> %MapInstance{instance | players: players-1} end)
       case players-1 do

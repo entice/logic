@@ -1,5 +1,5 @@
 defmodule Entice.Logic.MapInstanceTest do
-  use ExUnit.Case, async: false # cannot be tested async, since all on the same map
+  use ExUnit.Case, async: true
   use Entice.Logic.Attributes
   use Entice.Logic.Map
   alias Entice.Entity
@@ -11,28 +11,34 @@ defmodule Entice.Logic.MapInstanceTest do
   @moduletag :map_instance
 
 
-  defmap TestMap
+  defmap TestMap1
+  defmap TestMap2
+  defmap TestMap3
+  defmap TestMap4
+  defmap TestMap5
+  defmap TestMap6
 
 
   setup do
     {:ok, entity_id, entity_pid} = Entity.start
-    MapInstance.register(entity_id, TestMap)
     {:ok, %{entity_id: entity_id, entity_pid: entity_pid}}
   end
 
 
   test "register", %{entity_id: entity_id} do
-    m = %MapInstance{map: TestMap, players: 0}
+    MapInstance.register(entity_id, TestMap1)
+    m = %MapInstance{map: TestMap1, players: 0}
     assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
   end
 
 
   test "player joins", %{entity_id: entity_id} do
+    MapInstance.register(entity_id, TestMap2)
     {:ok, player_id, _pid} = Entity.start
-    Player.register(player_id, TestMap)
+    Player.register(player_id, TestMap2)
 
     {:ok, e1, _pid} = Entity.start
-    Coordination.register(e1, TestMap)
+    Coordination.register(e1, TestMap2)
     Spy.register(e1, self)
 
     MapInstance.add_player(entity_id, player_id)
@@ -43,8 +49,9 @@ defmodule Entice.Logic.MapInstanceTest do
 
 
   test "npc joins", %{entity_id: entity_id} do
+    MapInstance.register(entity_id, TestMap3)
     {:ok, e1, _pid} = Entity.start
-    Coordination.register(e1, TestMap)
+    Coordination.register(e1, TestMap3)
     Spy.register(e1, self)
 
     MapInstance.add_npc(entity_id, "Gwen", :gwen, %Position{})
@@ -53,14 +60,14 @@ defmodule Entice.Logic.MapInstanceTest do
   end
 
 
-  test "player leaves", %{entity_id: entity_id, entity_pid: entity_pid} do
-    {:ok, player_id_1, player_pid_1} = Entity.start
-    Player.register(player_id_1, TestMap)
-    {:ok, player_id_2, player_pid_2} = Entity.start
-    Player.register(player_id_2, TestMap)
+  test "player leaves", %{entity_id: entity_id} do
+    MapInstance.register(entity_id, TestMap4)
+    {:ok, player_id_1, _pid} = Entity.start
+    Player.register(player_id_1, TestMap4)
+    {:ok, player_id_2, _pid} = Entity.start
+    Player.register(player_id_2, TestMap4)
 
-    Coordination.register_observer(entity_pid, TestMap)
-    Spy.register(entity_pid, self)
+    Spy.register(entity_id, self)
 
     MapInstance.add_player(entity_id, player_id_1)
     MapInstance.add_player(entity_id, player_id_2)
@@ -75,16 +82,16 @@ defmodule Entice.Logic.MapInstanceTest do
 
 
   test "last player leaves", %{entity_id: entity_id, entity_pid: entity_pid} do
+    MapInstance.register(entity_id, TestMap5)
     {:ok, player_id, _pid} = Entity.start
-    Player.register(player_id, TestMap)
+    Player.register(player_id, TestMap5)
 
     Process.monitor(entity_pid)
-    Coordination.register_observer(entity_pid, TestMap)
-    Coordination.register_observer(self, TestMap)
+    Coordination.register_observer(self, TestMap5)
 
     MapInstance.add_player(entity_id, player_id)
 
-    m = %MapInstance{map: TestMap, players: 1}
+    m = %MapInstance{map: TestMap5, players: 1}
     assert {:ok, ^m} = Entity.fetch_attribute(entity_id, MapInstance)
 
     Entity.stop(player_id)
@@ -92,12 +99,13 @@ defmodule Entice.Logic.MapInstanceTest do
     poison_pill = Suicide.poison_pill_message
     assert_receive ^poison_pill
 
-    assert_receive {:coordination_stop_channel, TestMap}
+    assert_receive {:coordination_stop_channel, TestMap5}
     assert_receive {:DOWN, _, _, _, :normal}
   end
 
 
   test "unregister", %{entity_id: entity_id} do
+    MapInstance.register(entity_id, TestMap6)
     MapInstance.unregister(entity_id)
     assert :error = Entity.fetch_attribute(entity_id, MapInstance)
   end

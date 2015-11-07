@@ -4,7 +4,6 @@ defmodule Entice.Logic.Player do
   """
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.Maps
 
 
   defmodule Name, do: defstruct(

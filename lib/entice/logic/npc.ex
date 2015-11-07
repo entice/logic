@@ -1,6 +1,5 @@
 defmodule Entice.Logic.Npc do
   use Entice.Logic.Map
-  alias Entice.Utils.Geom.Coord
   alias Entice.Entity
   alias Entice.Logic.Player.Name
   alias Entice.Logic.Player.Position
@@ -12,16 +11,16 @@ defmodule Entice.Logic.Npc do
   defstruct(npc_model_id: :dhuum)
 
 
-  def spawn(map, name, model, %Position{} = position)
+  def spawn(name, model, %Position{} = position)
   when is_binary(name) and is_atom(model) do
     {:ok, id, pid} = Entity.start()
-    Npc.register(id, map, name, model, position)
+    Npc.register(id, name, model, position)
     Vitals.register(id)
     {:ok, id, pid}
   end
 
 
-  def register(entity, map, name, model, %Position{} = position)
+  def register(entity, name, model, %Position{} = position)
   when is_binary(name) and is_atom(model) do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
