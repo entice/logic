@@ -1,6 +1,8 @@
 defmodule Entice.Logic.MapRegistry do
-  @doc """Stores all the instances for each map.
-  Its state follows the following format: %{map=>entity_id}"""
+  @doc """
+  Stores all the instances for each map.
+  Its state follows the following format: %{map=>entity_id}
+  """
   use GenServer
   alias Entice.Logic.MapInstance
 
@@ -13,10 +15,10 @@ defmodule Entice.Logic.MapRegistry do
         {:ok, entity_id, entity_pid} = Entity.start
         MapInstance.register(entity_id, map)
         Agent.update(__MODULE__,
-          fn state -> state |> Map.update(map, entity_id, fn id -> entity_id end)
-        %{:ok, entity_id}
+          fn state -> state |> Map.update(map, entity_id, fn id -> entity_id end) end)
+        {:ok, entity_id}
       _ ->
-        %{:error, :instance_already_running}
+        {:error, :instance_already_running}
     end
   end
 
