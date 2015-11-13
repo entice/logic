@@ -13,10 +13,13 @@ defmodule Entice.Logic.Attributes do
       alias Entice.Logic.Player.Level
       alias Entice.Logic.Vitals.Health
       alias Entice.Logic.Vitals.Energy
+      alias Entice.Logic.Vitals.Morale
       alias Entice.Logic.Movement
+      alias Entice.Logic.Npc
       alias Entice.Logic.Group.Leader
       alias Entice.Logic.Group.Member
       alias Entice.Logic.SkillBar
+      alias Entice.Logic.MapInstance
     end
   end
 end

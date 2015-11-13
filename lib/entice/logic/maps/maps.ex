@@ -1,5 +1,5 @@
-defmodule Entice.Logic.Area do
-  use Entice.Logic.Area.Maps
+defmodule Entice.Logic.Maps do
+  use Entice.Logic.Map
 
 
   # Lobby is for special client entities that represent a logged in client.
@@ -17,15 +17,17 @@ defmodule Entice.Logic.Area do
 
   def default_map, do: HeroesAscent
 
+
   @doc """
   Adds an alias for all defined maps when 'used'.
   """
   defmacro __using__(_) do
     quote do
-      alias Entice.Logic.Area
+      alias Entice.Logic.Maps
       unquote(for map <- get_maps do
         quote do: alias unquote(map)
       end)
     end
   end
+
 end

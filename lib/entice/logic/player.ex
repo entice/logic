@@ -4,7 +4,6 @@ defmodule Entice.Logic.Player do
   """
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.Area
 
 
   defmodule Name, do: defstruct(
@@ -13,9 +12,6 @@ defmodule Entice.Logic.Player do
   defmodule Position, do: defstruct(
     pos: %Coord{},
     plane: 1)
-
-  defmodule MapInstance, do: defstruct(
-    map: Area.default_map)
 
   defmodule Appearance, do: defstruct(
     profession: 1,
@@ -36,7 +32,6 @@ defmodule Entice.Logic.Player do
       attrs
       |> Map.put(Name, %Name{name: name})
       |> Map.put(Position, %Position{pos: map.spawn})
-      |> Map.put(MapInstance, %MapInstance{map: map})
       |> Map.put(Appearance, appearance)
       |> Map.put(Level, %Level{level: 20})
     end)
@@ -49,7 +44,6 @@ defmodule Entice.Logic.Player do
       attrs
       |> Map.delete(Name)
       |> Map.delete(Position)
-      |> Map.delete(MapInstance)
       |> Map.delete(Appearance)
       |> Map.delete(Level)
     end)
@@ -58,7 +52,7 @@ defmodule Entice.Logic.Player do
 
   @doc "Returns all player related attributes as an attribute map"
   def attributes(entity),
-  do: Entity.take_attributes(entity, [Name, Position, MapInstance, Appearance, Level])
+  do: Entity.take_attributes(entity, [Name, Position, Appearance, Level])
 
 
   def set_appearance(entity, %Appearance{} = new_appear),
