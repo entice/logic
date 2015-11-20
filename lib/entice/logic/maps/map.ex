@@ -23,7 +23,7 @@ defmodule Entice.Logic.Map do
     quote do
       defmodule unquote(mapname) do
         alias Entice.Utils.Geom.Coord
-        unquote(content(__CALLER__.module))
+        unquote(content(mapname))
         def spawn, do: unquote(spawn)
         def is_outpost?, do: unquote(outpost)
       end
@@ -52,7 +52,8 @@ defmodule Entice.Logic.Map do
 
 
   defp content(mod) do
-    name = mod |> Module.split |> List.last |> to_string
+    [map_atom] = elem(mod,2)
+    name = map_atom |> to_string
     uname = underscore(name)
     quote do
       def name, do: unquote(name)
