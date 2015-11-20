@@ -1,10 +1,11 @@
 defmodule Entice.Logic.MapRegistry do
   @doc """
   Stores all the instances for each map.
-  Its state follows the following format: %{map=>entity_id}
+  Its state is in the following format: %{map=>entity_id}
   """
   use GenServer
   alias Entice.Logic.MapInstance
+  alias Entice.Entity
 
   def start_link,
   do: Agent.start_link(fn -> %{} end, name: __MODULE__)
@@ -12,10 +13,10 @@ defmodule Entice.Logic.MapRegistry do
   def start_instance(map) do
     case get_instance(map) do
       nil ->
-        {:ok, entity_id, entity_pid} = Entity.start
+        {:ok, entity_id, _entity_pid} = Entity.start
         MapInstance.register(entity_id, map)
         Agent.update(__MODULE__,
-          fn state -> state |> Map.update(map, entity_id, fn id -> entity_id end) end)
+          fn state -> state |> Map.update(map, entity_id, fn _id -> entity_id end) end)
         {:ok, entity_id}
       _ ->
         {:error, :instance_already_running}
@@ -25,6 +26,9 @@ defmodule Entice.Logic.MapRegistry do
   def get_instance(map),
   do: Agent.get(__MODULE__, fn state -> state |> Map.get(map) end)
 
-  def handle_cast({:instance_stopped, map}, state),
-  do: {:noreply, state |> Map.delete(map)}
+  def instance_stopped(map),
+  do: Agent.cast(__MODULE__, &remove_instance(&1, map))
+
+  defp remove_instance(state, map),
+  do: state |> Map.delete(map)
 end
