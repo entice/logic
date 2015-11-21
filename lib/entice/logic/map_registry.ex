@@ -3,7 +3,6 @@ defmodule Entice.Logic.MapRegistry do
   Stores all the instances for each map.
   Its state is in the following format: %{map=>entity_id}
   """
-  use GenServer
   alias Entice.Logic.MapInstance
   alias Entice.Entity
 
@@ -27,8 +26,5 @@ defmodule Entice.Logic.MapRegistry do
   do: Agent.get(__MODULE__, fn state -> state |> Map.get(map) end)
 
   def instance_stopped(map),
-  do: Agent.cast(__MODULE__, &remove_instance(&1, map))
-
-  defp remove_instance(state, map),
-  do: state |> Map.delete(map)
+  do: Agent.cast(__MODULE__, fn state -> state |> Map.delete(map) end)
 end
