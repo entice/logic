@@ -7,6 +7,7 @@ defmodule Entice.Logic.MapInstanceTest do
   alias Entice.Entity.Suicide
   alias Entice.Entity.Test.Spy
   alias Entice.Logic.MapInstance
+  alias Entice.Logic.MapRegistry
   alias Entice.Logic.Player
   @moduletag :map_instance
 
@@ -20,6 +21,7 @@ defmodule Entice.Logic.MapInstanceTest do
 
 
   setup do
+    MapRegistry.start_link()
     {:ok, entity_id, entity_pid} = Entity.start
     {:ok, %{entity_id: entity_id, entity_pid: entity_pid}}
   end
@@ -56,7 +58,7 @@ defmodule Entice.Logic.MapInstanceTest do
 
     MapInstance.add_npc(entity_id, "Gwen", :gwen, %Position{})
 
-    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}
+    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}, 200
   end
 
 

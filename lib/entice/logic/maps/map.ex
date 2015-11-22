@@ -20,10 +20,11 @@ defmodule Entice.Logic.Map do
     spawn   = Keyword.get(opts, :spawn, quote do %Coord{} end)
     outpost = Keyword.get(opts, :outpost, quote do true end)
 
+    map_content = content(Macro.to_string(mapname))
     quote do
       defmodule unquote(mapname) do
         alias Entice.Utils.Geom.Coord
-        unquote(content(__CALLER__.module))
+        unquote(map_content)
         def spawn, do: unquote(spawn)
         def is_outpost?, do: unquote(outpost)
       end
@@ -51,8 +52,7 @@ defmodule Entice.Logic.Map do
   end
 
 
-  defp content(mod) do
-    name = mod |> Module.split |> List.last |> to_string
+  defp content(name) do
     uname = underscore(name)
     quote do
       def name, do: unquote(name)

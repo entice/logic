@@ -5,6 +5,7 @@ defmodule Entice.Logic.MapInstance do
   alias Entice.Entity.Suicide
   alias Entice.Logic.MapInstance
   alias Entice.Logic.Npc
+  alias Entice.Logic.MapRegistry
 
 
   defstruct(players: 0, map: nil)
@@ -69,7 +70,9 @@ defmodule Entice.Logic.MapInstance do
     end
 
 
-    def terminate(_reason, entity),
-    do: {:ok, entity |> remove_attribute(MapInstance)}
+    def terminate(_reason, %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
+      MapRegistry.instance_stopped(map)
+      {:ok, entity |> remove_attribute(MapInstance)}
+    end
   end
 end
