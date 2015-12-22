@@ -4,7 +4,7 @@ defmodule Entice.Logic.SkillsTest do
   use ExUnit.Case, async: true
   alias Entice.Entity
   alias Entice.Entity.Attribute
-  alias Entice.Entity.Test.Spy
+  alias Entice.Logic.Vitals
 
 
   defmodule TestAttr, do: defstruct test_pid: nil
@@ -73,13 +73,11 @@ defmodule Entice.Logic.SkillsTest do
   test "damage effect" do
     {:ok, eid, _pid} = Entity.start_plain()
     Attribute.register(eid)
-    Attribute.put(eid, %Health{})
-    Spy.register(eid)
+    Vitals.register(eid)
 
     %Health{health: health} = Entity.get_attribute(eid, Health)
 
     damage(eid, 10)
-    assert_receive %{sender: ^eid, event: _}
 
     %Health{health: health_after_damage} = Entity.get_attribute(eid, Health)
     assert health_after_damage == (health - 10)
@@ -89,13 +87,11 @@ defmodule Entice.Logic.SkillsTest do
   test "healing effect" do
     {:ok, eid, _pid} = Entity.start_plain()
     Attribute.register(eid)
-    Attribute.put(eid, %Health{health: (%Health{}).health - 20})
-    Spy.register(eid)
+    Vitals.register(eid)
 
-    %Health{health: health} = Entity.get_attribute(eid, Health)
+    %Health{health: health} = Entity.get_and_update_attribute(eid, Health, fn health -> %Health{health | health: health.health - 20} end)
 
     heal(eid, 10)
-    assert_receive %{sender: ^eid, event: _}
 
     %Health{health: health_after_heal} = Entity.get_attribute(eid, Health)
     assert health_after_heal == (health + 10)

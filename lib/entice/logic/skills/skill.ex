@@ -101,22 +101,9 @@ defmodule Entice.Logic.Skill.Effect do
   """
   use Entice.Logic.Attributes
   alias Entice.Entity
+  alias Entice.Logic.Vitals
 
 
-  def damage(target, amount) do
-    target |> Entity.update_attribute(Health,
-      fn %Health{health: health} = h when (health - amount) <= 0 -> %Health{h | health: 0}
-         %Health{health: health} = h                             -> %Health{h | health: (health - amount)}
-      end)
-    :ok
-  end
-
-
-  def heal(target, amount) do
-    target |> Entity.update_attribute(Health,
-      fn %Health{health: health, max_health: max} = h when (health + amount) >= max -> %Health{h | health: max}
-         %Health{health: health} = h                                                -> %Health{h | health: (health + amount)}
-      end)
-    :ok
-  end
+  defdelegate damage(target, amount), to: Vitals
+  defdelegate heal(target, amount), to: Vitals
 end
