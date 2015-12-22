@@ -56,7 +56,7 @@ defmodule Entice.Logic.MapInstanceTest do
 
     MapInstance.add_npc(entity_id, "Gwen", :gwen, %Position{})
 
-    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}
+    assert_receive %{sender: ^e1, event: {:entity_join, %{entity_id: _, attributes: %{Npc => %Npc{npc_model_id: :gwen}}}}}, 300
   end
 
 
