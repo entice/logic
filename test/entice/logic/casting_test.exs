@@ -6,6 +6,7 @@ defmodule Entice.Logic.CastingTest do
   alias Entice.Entity.Test.Spy
   alias Entice.Logic.Skills
   alias Entice.Logic.Casting
+  alias Entice.Logic.Vitals
   @moduletag :casting
 
 
@@ -99,7 +100,7 @@ defmodule Entice.Logic.CastingTest do
     # prepare a target
     {:ok, e1, _p1} = Entity.start_plain
     Attribute.register(e1)
-    Attribute.put(e1, %Health{})
+    Vitals.register(e1)
     %Health{health: health} = Entity.get_attribute(e1, Health)
 
     cast_time = Skills.Bamph.cast_time

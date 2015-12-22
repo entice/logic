@@ -1,6 +1,7 @@
 defmodule Entice.Logic.Vitals do
   @moduledoc """
-  Responsible for the entities vital stats like (health, mana, regen, degen)
+  Responsible for the entities vital stats like (health, mana, regen, degen).
+  If the entity has no explicit level, it is implicitly assumed to be 20.
 
   If and entity dies, a local broadcast will be send that looks like this:
 
@@ -62,9 +63,7 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.DeadBehaviour
     alias Entice.Logic.Player.Level
 
-    def init(
-        %Entity{attributes: %{Level => _, Morale => _}} = entity,
-        {:entity_resurrected, percent_health, percent_energy}) do
+    def init(entity, {:entity_resurrected, percent_health, percent_energy}) do
       entity.id |> Coordination.notify_locally({
         :entity_resurrected,
         %{entity_id: entity.id, attributes: entity.attributes}})
@@ -81,7 +80,7 @@ defmodule Entice.Logic.Vitals do
         |> put_attribute(%Energy{mana: resurrected_mana, max_mana: max_mana})}
     end
 
-    def init(%Entity{attributes: %{Level => %Level{}}} = entity, _args) do
+    def init(entity, _args) do
       {:ok,
         entity
         |> put_attribute(%Morale{morale: 0})
@@ -134,12 +133,15 @@ defmodule Entice.Logic.Vitals do
     # Internal
 
 
-    defp get_max_health(%{Level => %Level{level: level}, Morale => %Morale{morale: morale}}) do
+    defp get_max_health(%{Level => %Level{level: level}, Morale => %Morale{morale: morale}}), do: get_max_health(level, morale)
+    defp get_max_health(%{Morale => %Morale{morale: morale}}), do: get_max_health(20, morale)
+    defp get_max_health(%{}), do: get_max_health(20, 0)
+
+    def get_max_health(level, morale) do
       health = calc_life_points_for_level(level)
       max_health_with_morale = round(health / 100 * (100 + morale))
       %Health{health: max_health_with_morale, max_health: max_health_with_morale}
     end
-
 
     #TODO: Take care of Armor, Runes, Weapons...
     defp calc_life_points_for_level(level),
@@ -147,7 +149,10 @@ defmodule Entice.Logic.Vitals do
 
 
     #TODO: Take care of Armor, Runes, Weapons...
-    defp get_max_energy(%{Morale => %Morale{morale: morale}}) do
+    defp get_max_energy(%{Morale => %Morale{morale: morale}}), do: get_max_energy(morale)
+    defp get_max_energy(%{}), do: get_max_energy(0)
+
+    defp get_max_energy(morale) do
       inital_mana = 70
       mana_with_morale = round(inital_mana / 100 * (100 + morale))
       %Energy{mana: mana_with_morale, max_mana: mana_with_morale}
