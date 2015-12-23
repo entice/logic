@@ -105,4 +105,5 @@ defmodule Entice.Logic.Skill.Effect do
 
   defdelegate damage(target, amount), to: Vitals
   defdelegate heal(target, amount), to: Vitals
+  defdelegate resurrect(target, percent_health, percent_energy), to: Vitals
 end

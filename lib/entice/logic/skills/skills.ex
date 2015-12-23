@@ -24,6 +24,9 @@ defmodule Entice.Logic.Skills do
     def cast_time,     do: 3000
     def recharge_time, do: 0
     def energy_cost,   do: 0
+
+    def apply_effect(target, _caster),
+    do: resurrect(target, 100, 25)
   end
 
   defskill SignetOfCapture, id: 3 do

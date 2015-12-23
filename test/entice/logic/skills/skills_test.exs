@@ -96,4 +96,19 @@ defmodule Entice.Logic.SkillsTest do
     %Health{health: health_after_heal} = Entity.get_attribute(eid, Health)
     assert health_after_heal == (health + 10)
   end
+
+
+  test "resurrection effect" do
+    {:ok, eid, _pid} = Entity.start_plain()
+    Attribute.register(eid)
+    Vitals.register(eid)
+
+    Vitals.kill(eid)
+    :timer.sleep(100)
+    assert Entity.has_behaviour?(eid, Vitals.DeadBehaviour)
+
+    resurrect(eid, 50, 50)
+    :timer.sleep(100)
+    assert Entity.has_behaviour?(eid, Vitals.AliveBehaviour)
+  end
 end
