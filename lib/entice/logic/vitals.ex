@@ -10,16 +10,20 @@ defmodule Entice.Logic.Vitals do
   If the entity then gets resurrected, a similar message will be broadcasted:
 
       {:entity_resurrected, %{entity_id: entity_id, attributes: attribs}}
+
+  The regeneration of health and energy works in a value-per-second fashion.
+  Usually, for health we have max/minimum of +-20 HP/s and for energy we have a
+  max/minimum of +-3 mana/s (both are equal to +-10 pips on the health / energy bars)
   """
   alias Entice.Entity
   alias Entice.Logic.Vitals
   alias Entice.Entity.Coordination
 
 
-  defmodule Health, do: defstruct(health: 500, max_health: 620)
+  defmodule Health, do: defstruct(health: 500, max_health: 620, regeneration: 0.0)
 
 
-  defmodule Energy, do: defstruct(mana: 50, max_mana: 70)
+  defmodule Energy, do: defstruct(mana: 50, max_mana: 70, regeneration: 0.6)
 
 
   defmodule Morale, do: defstruct(morale: 0)
@@ -55,6 +59,14 @@ defmodule Entice.Logic.Vitals do
   do: Coordination.notify(entity, {:vitals_entity_resurrect, percent_health, percent_energy})
 
 
+  def health_regeneration(entity, value),
+  do: Coordination.notify(entity, {:vitals_health_regeneration, value})
+
+
+  def energy_regeneration(entity, value),
+  do: Coordination.notify(entity, {:vitals_energy_regeneration, value})
+
+
   defmodule AliveBehaviour do
     use Entice.Entity.Behaviour
     alias Entice.Logic.Vitals.Health
@@ -62,6 +74,12 @@ defmodule Entice.Logic.Vitals do
     alias Entice.Logic.Vitals.Morale
     alias Entice.Logic.Vitals.DeadBehaviour
     alias Entice.Logic.Player.Level
+
+
+    @regeneration_interval 500
+    @min_accumulated_health 5      # these values need to accumulate over time before
+    @min_accumulated_energy 1      # the attribute is updated
+
 
     def init(entity, {:entity_resurrected, percent_health, percent_energy}) do
       entity.id |> Coordination.notify_locally({
@@ -74,6 +92,10 @@ defmodule Entice.Logic.Vitals do
       %Energy{max_mana: max_mana} = get_max_energy(entity.attributes)
       resurrected_mana = round(max_mana / 100 * percent_energy)
 
+      self |> Process.send_after({:vitals_regeneration_update, %{
+          interval: @regeneration_interval,
+          health_accumulator: 0,
+          energy_accumulator: 0}}, @regeneration_interval)
       {:ok,
         entity
         |> put_attribute(%Health{health: resurrected_health, max_health: max_health})
@@ -81,6 +103,10 @@ defmodule Entice.Logic.Vitals do
     end
 
     def init(entity, _args) do
+      self |> Process.send_after({:vitals_regeneration_update, %{
+          interval: @regeneration_interval,
+          health_accumulator: 0,
+          energy_accumulator: 0}}, @regeneration_interval)
       {:ok,
         entity
         |> put_attribute(%Morale{morale: 0})
@@ -116,6 +142,31 @@ defmodule Entice.Logic.Vitals do
     end
 
     def handle_event(:vitals_entity_kill, entity), do: {:become, DeadBehaviour, :entity_died, entity}
+
+    def handle_event({:vitals_health_regeneration, value}, entity) when (-10 <= value) and (value <= 10),
+    do: {:ok, entity |> update_attribute(Health, fn health -> %Health{health | regeneration: value} end)}
+
+    def handle_event({:vitals_energy_regeneration, value}, entity) when (-3 <= value) and (value <= 3),
+    do: {:ok, entity |> update_attribute(Energy, fn energy -> %Energy{energy | regeneration: value} end)}
+
+    def handle_event(
+        {:vitals_regeneration_update, %{interval: interval, health_accumulator: health_acc, energy_accumulator: energy_acc}},
+        %Entity{attributes: %{
+          Health => %Health{regeneration: health_regen} = health,
+          Energy => %Energy{regeneration: energy_regen} = energy}} = entity) do
+      health_acc = health_acc + (health_regen * interval/1000)
+      energy_acc = energy_acc + (energy_regen * interval/1000)
+
+      {new_health, new_health_acc} = regenerate_health(health, health_acc)
+      {new_energy, new_energy_acc} = regenerate_energy(energy, energy_acc)
+
+      self |> Process.send_after({:vitals_regeneration_update, %{
+          interval: @regeneration_interval,
+          health_accumulator: new_health_acc,
+          energy_accumulator: new_energy_acc}}, @regeneration_interval)
+      {:ok, entity |> update_attribute(Health, fn _ -> new_health end)
+                   |> update_attribute(Energy, fn _ -> new_energy end)}
+    end
 
 
     def terminate({:become_handler, DeadBehaviour, _}, entity),
@@ -157,6 +208,18 @@ defmodule Entice.Logic.Vitals do
       mana_with_morale = round(inital_mana / 100 * (100 + morale))
       %Energy{mana: mana_with_morale, max_mana: mana_with_morale}
     end
+
+
+    defp regenerate_health(health, amount) when amount >= @min_accumulated_health,
+    do: {%Health{health | health: ((health.health + amount) |> round |> min(health.max_health))}, 0}
+
+    defp regenerate_health(health, amount), do: {health, amount}
+
+
+    defp regenerate_energy(energy, amount) when amount >= @min_accumulated_energy,
+    do: {%Energy{energy | mana: ((energy.mana + amount) |> round |> min(energy.max_mana))}, 0}
+
+    defp regenerate_energy(energy, amount), do: {energy, amount}
   end
 
 

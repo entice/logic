@@ -102,4 +102,34 @@ defmodule Entice.Logic.VitalsTest do
     Vitals.kill(e1)
     assert Entity.has_behaviour?(e1, DeadBehaviour)
   end
+
+
+  test "recharging health", %{e1: e1} do
+    assert {:ok, %Health{health: 480}} = Entity.fetch_attribute(e1, Health)
+
+    Vitals.health_regeneration(e1, 10)
+    Vitals.damage(e1, 10)
+
+    assert {:ok, %Health{health: health}} = Entity.fetch_attribute(e1, Health)
+    assert health <= 480
+
+    :timer.sleep(1100)
+
+    assert {:ok, %Health{health: 480}} = Entity.fetch_attribute(e1, Health)
+  end
+
+
+  test "recharging energy", %{e1: e1} do
+    assert {:ok, %Energy{mana: 70}} = Entity.fetch_attribute(e1, Energy)
+
+    Vitals.energy_regeneration(e1, 2)
+    Entity.update_attribute(e1, Energy, fn ene -> %Energy{ene | mana: (ene.mana - 2)} end)
+
+    assert {:ok, %Energy{mana: energy}} = Entity.fetch_attribute(e1, Energy)
+    assert energy <= 70
+
+    :timer.sleep(1100)
+
+    assert {:ok, %Energy{mana: 70}} = Entity.fetch_attribute(e1, Energy)
+  end
 end

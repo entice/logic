@@ -100,7 +100,6 @@ defmodule Entice.Logic.Skill.Effect do
   Helpers that can be used when implementing skill effect scripts
   """
   use Entice.Logic.Attributes
-  alias Entice.Entity
   alias Entice.Logic.Vitals
 
 
