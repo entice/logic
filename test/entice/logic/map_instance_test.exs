@@ -109,6 +109,7 @@ defmodule Entice.Logic.MapInstanceTest do
   test "unregister", %{entity_id: entity_id} do
     MapInstance.register(entity_id, TestMap6)
     MapInstance.unregister(entity_id)
+    :timer.sleep(100)
     assert :error = Entity.fetch_attribute(entity_id, MapInstance)
   end
 end

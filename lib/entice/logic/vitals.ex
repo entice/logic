@@ -210,14 +210,20 @@ defmodule Entice.Logic.Vitals do
     end
 
 
-    defp regenerate_health(health, amount) when amount >= @min_accumulated_health,
-    do: {%Health{health | health: ((health.health + amount) |> round |> min(health.max_health))}, 0}
+    defp regenerate_health(health, amount) when amount >= @min_accumulated_health do
+      health_addition = trunc(amount)
+      leftover = amount - health_addition
+      {%Health{health | health: ((health.health + health_addition) |> min(health.max_health))}, leftover}
+    end
 
     defp regenerate_health(health, amount), do: {health, amount}
 
 
-    defp regenerate_energy(energy, amount) when amount >= @min_accumulated_energy,
-    do: {%Energy{energy | mana: ((energy.mana + amount) |> round |> min(energy.max_mana))}, 0}
+    defp regenerate_energy(energy, amount) when amount >= @min_accumulated_energy do
+      energy_addition = trunc(amount)
+      leftover = amount - energy_addition
+      {%Energy{energy | mana: ((energy.mana + energy_addition) |> min(energy.max_mana))}, leftover}
+    end
 
     defp regenerate_energy(energy, amount), do: {energy, amount}
   end
