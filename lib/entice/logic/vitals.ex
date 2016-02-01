@@ -23,7 +23,7 @@ defmodule Entice.Logic.Vitals do
   defmodule Health, do: defstruct(health: 500, max_health: 620, regeneration: 0.0)
 
 
-  defmodule Energy, do: defstruct(mana: 50, max_mana: 70, regeneration: 0.6)
+  defmodule Energy, do: defstruct(mana: 50, max_mana: 70, regeneration: 0.666) # hell yeah
 
 
   defmodule Morale, do: defstruct(morale: 0)
