@@ -176,7 +176,14 @@ defmodule Entice.Logic.Casting do
       end
     end
 
-    defp prerequisites_fulfilled?({:ok, skill}, target, entity) do
+    defp prerequisites_fulfilled?({:ok, skill}, target_eid, entity) do
+      #Workaround because fetching target attributes in prerequisite functions will timeout if target == caster
+      eid = entity.id
+      case target_eid do
+        eid -> target = entity
+        _ -> target = target_eid
+      end
+
       case skill.prerequisites_fulfilled?(target, entity) do
         :ok -> {:ok, skill}
         error -> error

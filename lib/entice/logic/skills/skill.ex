@@ -110,13 +110,16 @@ defmodule Entice.Logic.Skill.Prerequisite do
   use Entice.Logic.Attributes
   alias Entice.Entity
 
-  def target_dead?(target) do
-    {:ok, %Health{health: health, max_health: _, regeneration: _}} = Entity.fetch_attribute(target, Health)
-    case health do
-      0 -> :ok #
-      _ -> {:error, :target_not_dead}
-    end
+  def target_dead?(target_id) when is_binary(target_id) do
+    {:ok, %Health{health: health, max_health: _, regeneration: _}} = Entity.fetch_attribute(target_id, Health)
+    target_dead?(health)
   end
+
+  def target_dead?(%Entity{attributes: %{Health => %Health{health: health}}}), 
+  do: target_dead?(health)
+
+  def target_dead?(0), do: :ok
+  def target_dead?(health), do: {:error, :target_not_dead}
 end
 
 defmodule Entice.Logic.Skill.Effect do
