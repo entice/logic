@@ -66,6 +66,22 @@ defmodule Entice.Logic.SkillsTest do
     assert_receive :gotcha
   end
 
+  # prerequisites
+
+  test "target is dead prerequisite" do
+    {:ok, eid, _pid} = Entity.start_plain()
+    Attribute.register(eid)
+    Vitals.register(eid)
+
+    assert {:error, :target_not_dead} == target_dead?(eid)
+
+    Vitals.kill(eid)
+    :timer.sleep(100)
+    assert Entity.has_behaviour?(eid, Vitals.DeadBehaviour)
+    
+    assert :ok == target_dead?(eid)
+  end
+
 
   # effects
 

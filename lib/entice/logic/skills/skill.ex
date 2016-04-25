@@ -4,6 +4,7 @@ defmodule Entice.Logic.Skill do
   defmacro __using__(_) do
     quote do
       import Entice.Logic.Skill
+      import Entice.Logic.Skill.Prerequisite
       import Entice.Logic.Skill.Effect
 
       @skills %{}
@@ -21,12 +22,15 @@ defmodule Entice.Logic.Skill do
       # add the module
       defmodule unquote(skillname) do
         import Entice.Logic.Skill.Effect
+        import Entice.Logic.Skill.Prerequisite
         @behaviour Entice.Logic.Skill.Behaviour
         def id, do: unquote(skillid)
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
-        def apply_effect(target, caster), do: :ok
+        def apply_effect(target, caster), do: :ok    
+        def prerequisites_fulfilled?(target, caster), do: :ok    
         defoverridable [apply_effect: 2]
+        defoverridable [prerequisites_fulfilled?: 2]
         unquote(do_block)
       end
       # then update the stats
@@ -92,8 +96,28 @@ defmodule Entice.Logic.Skill.Behaviour do
   defcallback apply_effect(target_entity_id :: term, caster_entity :: %Entity{}) ::
     :ok |
     {:error, reason :: term}
+
+  @doc "Is called before starting to cast."
+  defcallback prerequisites_fulfilled?(target_entity_id :: term, caster_entity :: %Entity{}) ::
+    :ok |
+    {:error, reason :: term}
 end
 
+defmodule Entice.Logic.Skill.Prerequisite do
+  @moduledoc """
+  Helpers that can be used when implementing skill prerequisite scripts
+  """
+  use Entice.Logic.Attributes
+  alias Entice.Entity
+
+  def target_dead?(target) do
+    {:ok, %Health{health: health, max_health: _, regeneration: _}} = Entity.fetch_attribute(target, Health)
+    case health do
+      0 -> :ok #
+      _ -> {:error, :target_not_dead}
+    end
+  end
+end
 
 defmodule Entice.Logic.Skill.Effect do
   @moduledoc """

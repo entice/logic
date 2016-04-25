@@ -27,6 +27,9 @@ defmodule Entice.Logic.Skills do
 
     def apply_effect(target, _caster),
     do: resurrect(target, 100, 25)
+
+    def prerequisites_fulfilled?(target, _caster),
+    do: target_dead?(target)
   end
 
   defskill SignetOfCapture, id: 3 do
