@@ -165,25 +165,23 @@ defmodule Entice.Logic.Casting do
           {:ok, skill}
           |> enough_energy?(mana - skill.energy_cost)
           |> not_recharging?(recharge_timers[skill])
-          |> prerequisites_fulfilled?(target, entity)
+          |> check_requirements(target, entity)
         _cast_time ->
           pipe_matching {:ok, _},
           {:ok, skill}
           |> enough_energy?(mana - skill.energy_cost)
           |> not_recharging?(recharge_timers[skill])
-          |> prerequisites_fulfilled?(target, entity)
+          |> check_requirements(target, entity)
           |> not_casting?(cast_timer, after_cast_timer)
       end
     end
 
-    defp prerequisites_fulfilled?({:ok, skill}, target_eid, entity) do
-      #Workaround because fetching target attributes in prerequisite functions will timeout if target == caster
-      cond do
-        target_eid == entity.id -> target = entity
-        true -> target = target_eid
-      end
+    @doc "Take local entity data when we are the target"
+    defp check_requirements(input, target_eid, %Entity{id: target_eid} = entity),
+    do: check_requirements(input, entity, entity)
 
-      case skill.prerequisites_fulfilled?(target, entity) do
+    defp check_requirements({:ok, skill}, target, entity) do
+      case skill.check_requirements(target, entity) do
         :ok -> {:ok, skill}
         error -> error
       end

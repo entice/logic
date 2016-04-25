@@ -28,9 +28,8 @@ defmodule Entice.Logic.Skill do
         def name, do: unquote(name)
         def underscore_name, do: unquote(uname)
         def apply_effect(target, caster), do: :ok    
-        def prerequisites_fulfilled?(target, caster), do: :ok    
-        defoverridable [apply_effect: 2]
-        defoverridable [prerequisites_fulfilled?: 2]
+        def check_requirements(target, caster), do: :ok    
+        defoverridable [apply_effect: 2, check_requirements: 2]
         unquote(do_block)
       end
       # then update the stats
@@ -98,7 +97,7 @@ defmodule Entice.Logic.Skill.Behaviour do
     {:error, reason :: term}
 
   @doc "Is called before starting to cast."
-  defcallback prerequisites_fulfilled?(target_entity_id :: term, caster_entity :: %Entity{}) ::
+  defcallback check_requirements(target_entity_id_or_entity :: term | %Entity{}, caster_entity :: %Entity{}) ::
     :ok |
     {:error, reason :: term}
 end
@@ -110,16 +109,16 @@ defmodule Entice.Logic.Skill.Prerequisite do
   use Entice.Logic.Attributes
   alias Entice.Entity
 
-  def target_dead?(target_id) when is_binary(target_id) do
+  def require_dead(target_id) when is_binary(target_id) do
     {:ok, %Health{health: health, max_health: _, regeneration: _}} = Entity.fetch_attribute(target_id, Health)
-    target_dead?(health)
+    require_dead(health)
   end
 
-  def target_dead?(%Entity{attributes: %{Health => %Health{health: health}}}), 
-  do: target_dead?(health)
+  def require_dead(%Entity{attributes: %{Health => %Health{health: health}}}), 
+  do: require_dead(health)
 
-  def target_dead?(0), do: :ok
-  def target_dead?(_health), do: {:error, :target_not_dead}
+  def require_dead(0), do: :ok
+  def require_dead(_health), do: {:error, :target_not_dead}
 end
 
 defmodule Entice.Logic.Skill.Effect do

@@ -73,13 +73,13 @@ defmodule Entice.Logic.SkillsTest do
     Attribute.register(eid)
     Vitals.register(eid)
 
-    assert {:error, :target_not_dead} == target_dead?(eid)
+    assert {:error, :target_not_dead} == require_dead(eid)
 
     Vitals.kill(eid)
     :timer.sleep(100)
     assert Entity.has_behaviour?(eid, Vitals.DeadBehaviour)
     
-    assert :ok == target_dead?(eid)
+    assert :ok == require_dead(eid)
   end
 
 
