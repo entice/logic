@@ -119,7 +119,7 @@ defmodule Entice.Logic.Skill.Prerequisite do
   do: target_dead?(health)
 
   def target_dead?(0), do: :ok
-  def target_dead?(health), do: {:error, :target_not_dead}
+  def target_dead?(_health), do: {:error, :target_not_dead}
 end
 
 defmodule Entice.Logic.Skill.Effect do
