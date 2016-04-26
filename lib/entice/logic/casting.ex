@@ -63,7 +63,7 @@ defmodule Entice.Logic.Casting do
           Energy => %Energy{mana: mana}}} = entity) do
       cast_time = skill.cast_time
 
-      check_able_to_cast(skill, entity)
+      check_able_to_cast(skill, target, entity)
       |> case do
         {:error, _reason} = msg -> {:ok, msg, entity}
         {:ok, skill} ->
@@ -155,9 +155,9 @@ defmodule Entice.Logic.Casting do
     end
 
 
-    defp check_able_to_cast(skill,  %Entity{attributes: %{
+    defp check_able_to_cast(skill,  target, %Entity{attributes: %{
       Casting => %Casting{cast_timer: cast_timer, after_cast_timer: after_cast_timer, recharge_timers: recharge_timers},
-      Energy => %Energy{mana: mana}}} = _entity) do
+      Energy => %Energy{mana: mana}}} = entity) do
 
       case skill.cast_time do
         cast_time when cast_time == 0 ->
@@ -165,15 +165,27 @@ defmodule Entice.Logic.Casting do
           {:ok, skill}
           |> enough_energy?(mana - skill.energy_cost)
           |> not_recharging?(recharge_timers[skill])
+          |> check_requirements(target, entity)
         _cast_time ->
           pipe_matching {:ok, _},
           {:ok, skill}
           |> enough_energy?(mana - skill.energy_cost)
           |> not_recharging?(recharge_timers[skill])
+          |> check_requirements(target, entity)
           |> not_casting?(cast_timer, after_cast_timer)
       end
     end
 
+    @doc "Take local entity data when we are the target"
+    defp check_requirements(input, target_eid, %Entity{id: target_eid} = entity),
+    do: check_requirements(input, entity, entity)
+
+    defp check_requirements({:ok, skill}, target, entity) do
+      case skill.check_requirements(target, entity) do
+        :ok -> {:ok, skill}
+        error -> error
+      end
+    end
 
     defp enough_energy?({:ok, skill}, mana) when mana > 0, do: {:ok, skill}
     defp enough_energy?({:ok, _skill}, _mana), do: {:error, :not_enough_energy}

@@ -25,6 +25,9 @@ defmodule Entice.Logic.Skills do
     def recharge_time, do: 0
     def energy_cost,   do: 0
 
+    def check_requirements(target, _caster),
+    do: require_dead(target)
+
     def apply_effect(target, _caster),
     do: resurrect(target, 100, 25)
   end

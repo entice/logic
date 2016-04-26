@@ -15,6 +15,7 @@ defmodule Entice.Logic.CastingTest do
     {:ok, entity_id, _pid} = Entity.start_plain
     Attribute.register(entity_id)
     Casting.register(entity_id)
+    Vitals.register(entity_id)
     Spy.register(entity_id, self)
     Entity.put_attribute(entity_id, %Energy{mana: 50})
     {:ok, [entity_id: entity_id]}
@@ -52,6 +53,10 @@ defmodule Entice.Logic.CastingTest do
   test "won't cast with both cast_timer and after_cast_timer != nil", %{entity_id: eid} do
     Entity.update_attribute(eid, Casting, fn c -> %Casting{c | cast_timer: 10, after_cast_timer: 10} end)
     assert {:error, :still_casting} = Casting.cast_skill(eid, Skills.HealingSignet, 0, nil, self)
+  end
+
+  test "won't cast prerequisites not fulfilled", %{entity_id: eid} do
+    assert {:error, :target_not_dead} = Casting.cast_skill(eid, Skills.ResurrectionSignet, 0, eid, self)
   end
 
 
