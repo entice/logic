@@ -17,19 +17,19 @@ defmodule Entice.Logic.MapRegistryTest do
   end
 
 
-  test "start instance success" do
+  test "start instance" do
     entity = MapRegistry.get_or_create_instance(TestMap1)
     assert Entity.exists?(entity)
     assert Entity.has_behaviour?(entity, MapInstance.Behaviour)
     assert Process.alive?(Entity.fetch!(entity))
   end
 
-  test "start instance already exists" do
+  test "get instance that already exists" do
     entity = MapRegistry.get_or_create_instance(TestMap2)
     assert ^entity = MapRegistry.get_or_create_instance(TestMap2)
   end
 
-  test "instance stopped success" do
+  test "stop instance" do
     entity = MapRegistry.get_or_create_instance(TestMap4)
     Process.monitor(Entity.fetch!(entity))
     MapRegistry.stop_instance(TestMap4)
