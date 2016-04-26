@@ -76,7 +76,6 @@ defmodule Entice.Logic.SkillsTest do
     assert {:error, :target_not_dead} == require_dead(eid)
 
     Vitals.kill(eid)
-    :timer.sleep(100)
     assert Entity.has_behaviour?(eid, Vitals.DeadBehaviour)
     
     assert :ok == require_dead(eid)

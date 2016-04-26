@@ -117,6 +117,7 @@ defmodule Entice.Logic.Skill.Prerequisite do
   def require_dead(%Entity{attributes: %{Health => %Health{health: health}}}), 
   do: require_dead(health)
 
+  #TODO: Replace by check for death attribute instead of health
   def require_dead(0), do: :ok
   def require_dead(_health), do: {:error, :target_not_dead}
 end
