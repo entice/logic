@@ -71,7 +71,7 @@ defmodule Entice.Logic.MapInstance do
 
 
     def terminate(_reason, %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
-      MapRegistry.instance_stopped(map)
+      MapRegistry.stop_instance(map)
       {:ok, entity |> remove_attribute(MapInstance)}
     end
   end
