@@ -1,11 +1,8 @@
 defmodule Entice.Logic.Npc do
   use Entice.Logic.Map
   alias Entice.Entity
-  alias Entice.Logic.Player.Name
-  alias Entice.Logic.Player.Position
-  alias Entice.Logic.Player.Level
-  alias Entice.Logic.Npc
-  alias Entice.Logic.Vitals
+  alias Entice.Logic.{Npc, Vitals}
+  alias Entice.Logic.Player.{Name, Position, Level}
 
 
   defstruct(npc_model_id: :dhuum)

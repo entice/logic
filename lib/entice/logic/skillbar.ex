@@ -1,7 +1,6 @@
 defmodule Entice.Logic.SkillBar do
   alias Entice.Entity
-  alias Entice.Logic.Skills
-  alias Entice.Logic.SkillBar
+  alias Entice.Logic.{Skills, SkillBar}
 
 
   @skillbar_slots 8

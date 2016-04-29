@@ -14,10 +14,12 @@ defmodule Entice.Logic.Vitals do
   The regeneration of health and energy works in a value-per-second fashion.
   Usually, for health we have max/minimum of +-20 HP/s and for energy we have a
   max/minimum of +-3 mana/s (both are equal to +-10 pips on the health / energy bars)
+  Note that the client assumes a standard mana regen of 0.71 mana/s (2 pips),
+  which is 0.355 * 2, so we think 0.355 is the standard 1 pip regen.
   """
   alias Entice.Entity
-  alias Entice.Logic.Vitals
   alias Entice.Entity.Coordination
+  alias Entice.Logic.Vitals
 
 
   defmodule Health, do: defstruct(health: 500, max_health: 620, regeneration: 0.0)

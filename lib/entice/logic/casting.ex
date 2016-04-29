@@ -91,8 +91,8 @@ defmodule Entice.Logic.Casting do
       |> handle_cast_result(skill)
       |> prepare_cast_message(entity, skill, slot, target, recharge_time)
       |> case do
-        message when do_report -> report_to_pid |> send message
-        _                      ->
+        message when do_report -> report_to_pid |> send(message)
+        _                      -> nil
       end
 
       {:ok, entity |> update_attribute(Casting,
@@ -110,14 +110,14 @@ defmodule Entice.Logic.Casting do
       do_report = if report_to_pid, do: true, else: false # nil/other to boolean
 
       if do_report and recharge_time > 0,
-      do: report_to_pid |> send {:skill_recharged, %{entity_id: entity.id, skill: skill, slot: slot}}
+      do: report_to_pid |> send({:skill_recharged, %{entity_id: entity.id, skill: skill, slot: slot}})
 
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | recharge_timers: c.recharge_timers |> Map.delete(skill)} end)}
     end
 
 
     def handle_event({:casting_after_cast_end, report_to_pid}, entity) do
-      if report_to_pid, do: report_to_pid |> send {:after_cast_delay_ended, %{entity_id: entity.id}}
+      if report_to_pid, do: report_to_pid |> send({:after_cast_delay_ended, %{entity_id: entity.id}})
       {:ok, entity |> update_attribute(Casting, fn c -> %Casting{c | after_cast_timer: nil} end)}
     end
 
@@ -147,7 +147,7 @@ defmodule Entice.Logic.Casting do
 
     defp start_timer(message, time) do
       if time == 0 do
-        self |> send message
+        self |> send(message)
         nil
       else
         self |> Process.send_after(message, time)
@@ -176,7 +176,7 @@ defmodule Entice.Logic.Casting do
       end
     end
 
-    @doc "Take local entity data when we are the target"
+    # Take local entity data when we are the target
     defp check_requirements(input, target_eid, %Entity{id: target_eid} = entity),
     do: check_requirements(input, entity, entity)
 

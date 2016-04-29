@@ -1,8 +1,7 @@
 defmodule Entice.Logic.Movement do
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.Movement
-  alias Entice.Logic.Player.Position
+  alias Entice.Logic.{Movement, Player.Position}
 
 
   @doc """

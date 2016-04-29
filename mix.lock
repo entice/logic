@@ -1,5 +1,5 @@
-%{"entice_entity": {:git, "https://github.com/entice/entity.git", "14d1df1b03d4002c05df78ab9240acbbd696ff8c", [ref: "14d1df1b03d4002c05df78ab9240acbbd696ff8c"]},
-  "entice_utils": {:git, "https://github.com/entice/utils.git", "e80039a439753d743635b0a67b78fa04329f8930", [ref: "e80039a439753d743635b0a67b78fa04329f8930"]},
+%{"entice_entity": {:git, "https://github.com/entice/entity.git", "c26f6f77ae650e25e6cd2ffea8aae46b7d83966a", [ref: "c26f6f77ae650e25e6cd2ffea8aae46b7d83966a"]},
+  "entice_utils": {:git, "https://github.com/entice/utils.git", "79ead4dca77324b4c24f584468edbaff2029eeab", [ref: "79ead4dca77324b4c24f584468edbaff2029eeab"]},
   "inflex": {:hex, :inflex, "1.5.0"},
   "pipe": {:hex, :pipe, "0.0.2"},
-  "uuid": {:hex, :uuid, "1.0.1"}}
+  "uuid": {:hex, :uuid, "1.1.3"}}
