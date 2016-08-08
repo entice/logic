@@ -1,7 +1,7 @@
 defmodule Entice.Logic.Movement do
   alias Entice.Entity
   alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.{Movement, Player.Position}
+  alias Entice.Logic.{Movement, MapInstance, Player.Position}
 
 
   @doc """
@@ -19,15 +19,17 @@ defmodule Entice.Logic.Movement do
   do: Entity.remove_behaviour(entity, Movement.Behaviour)
 
 
-  def update(entity,
+  def update(%Entity{attributes: %{MapInstance => %MapInstance{map: map, players: _}}} = entity, #TODO: Add Map instance attribute to players of the instance?
       %Position{} = new_pos,
-      %Movement{} = new_movement) do
+      %Movement{} = new_movement,
+      channel_pid) do #TODO: find a better way to pass movement channel to seek behaviour?
     entity |> Entity.attribute_transaction(
       fn attrs ->
         attrs
         |> Map.put(Position, new_pos)
         |> Map.put(Movement, new_movement)
       end)
+    Coordination.notify_all(map, {:movement_agent_updated, %{player_entity: entity, channel_pid: channel_pid}})
   end
 
 
