@@ -21,15 +21,14 @@ defmodule Entice.Logic.Movement do
 
   def update(%Entity{attributes: %{MapInstance => %MapInstance{map: map, players: _}}} = entity, #TODO: Add Map instance attribute to players of the instance?
       %Position{} = new_pos,
-      %Movement{} = new_movement,
-      channel_pid) do #TODO: find a better way to pass movement channel to seek behaviour?
+      %Movement{} = new_movement) do
     entity |> Entity.attribute_transaction(
       fn attrs ->
         attrs
         |> Map.put(Position, new_pos)
         |> Map.put(Movement, new_movement)
       end)
-    Coordination.notify_all(map, {:movement_agent_updated, %{player_entity: entity, channel_pid: channel_pid}})
+    Coordination.notify_all(map, {:movement_agent_updated, entity})
   end
 
 

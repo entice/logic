@@ -9,6 +9,7 @@ defmodule Entice.Logic.Player do
   defmodule Name, do: defstruct(
     name: "Unknown Entity")
 
+  #TODO: rename :pos to :coord ? Confusing sometimes
   defmodule Position, do: defstruct(
     pos: %Coord{},
     plane: 1)
