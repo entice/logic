@@ -7,13 +7,13 @@ defmodule Entice.Logic.Npc do
   defstruct npc_model_id: :dhuum, init_coord: %Position{}
 
 
-  def spawn(name, model, %Position{} = position, %{seeks: seeks} \\ %{seeks: true})
+  def spawn(name, model, %Position{} = position, opts \\ [])
   when is_binary(name) and is_atom(model) do
     {:ok, id, pid} = Entity.start()
     Npc.register(id, name, model, position)
     Vitals.register(id)
     Movement.register(id)    
-    if seeks, do: Seek.register(id)
+    if opts[:seeks] || true, do: Seek.register(id)
     {:ok, id, pid}
   end
 
