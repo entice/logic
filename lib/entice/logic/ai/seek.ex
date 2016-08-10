@@ -1,4 +1,5 @@
 defmodule Entice.Logic.Seek do
+  alias Entice.Entity
   alias Entice.Logic.{Seek, Player.Position, Npc, Movement}
   alias Entice.Utils.Geom.Coord
 
@@ -14,7 +15,6 @@ defmodule Entice.Logic.Seek do
   def unregister(entity),
   do: Entity.remove_behaviour(entity, Seek.Behaviour)
 
-  #TODO: Add map instance to all map instance agents
   #TODO: Add team attr to determine who should be attacked by whom
   defmodule Behaviour do
     use Entice.Entity.Behaviour
@@ -25,37 +25,37 @@ defmodule Entice.Logic.Seek do
     def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Seek{})}
 
-    def handle_event({:movement_agent_updated,  
-        %Entity{attributes: %{Position => %Position{pos: mover_pos, plane: _}}} = other_entity},
-        %Entity{attributes: %{Position => %Position{pos: my_pos, plane: _}, 
-                              Movement => _,
-                              Npc      => %Npc{npc_model_id: _, init_pos: init_pos},
-                              Seek     => %Seek{aggro_distance: aggro_distance, escape_distance: escape_distance, target: target}}} = entity) do
-      unless other_entity == entity do
-        case target do
-          nil ->
-            if calc_distance(my_pos, mover_pos) < aggro_distance do              
-              {:ok, entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: other_entity} end)
-                           |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end) }
-            end            
-            
-          ^other_entity ->
-            current_distance = calc_distance(my_pos, mover_pos)
-            entity = cond do
-              current_distance >= escape_distance -> 
-                entity 
-                |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
-                |> update_attribute(Movement, fn(m) -> %Movement{m | goal: init_pos} end)
-              true ->
-                entity
-                |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end)          
-            end
-            {:ok, entity}
+    #No introspection for npcs ;)
+    def handle_event({:movement_agent_updated,  %Position{pos: _}, other_entity_id}, %Entity{id: id} = entity)
+    when other_entity_id == id,
+    do: {:ok, entity}
 
-          _ -> {:ok, entity}
-        end
-      end      
-      {:ok, entity}
+    def handle_event({:movement_agent_updated,  %Position{pos: mover_pos}, other_entity_id}, 
+      %Entity{attributes: %{Position => %Position{pos: my_pos}, 
+                            Movement => _,
+                            Npc      => %Npc{init_pos: init_pos},
+                            Seek     => %Seek{aggro_distance: aggro_distance, escape_distance: escape_distance, target: target}}} = entity) do
+      case target do
+        nil ->
+          if calc_distance(my_pos, mover_pos) < aggro_distance do
+            {:ok, entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: other_entity_id} end)
+                         |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end)}
+          else
+            {:ok, entity}
+          end            
+          
+        ^other_entity_id ->
+          if calc_distance(init_pos, mover_pos) >= escape_distance do
+            {:ok, entity 
+                  |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
+                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: init_pos} end)}
+          else
+            {:ok, entity
+                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end)}
+          end
+
+        _ -> {:ok, entity}
+      end 
     end
 
     def terminate(_reason, entity),

@@ -1,5 +1,6 @@
 defmodule Entice.Logic.Movement do
   alias Entice.Entity
+  alias Entice.Entity.Coordination
   alias Entice.Utils.Geom.Coord
   alias Entice.Logic.{Movement, MapInstance, Player.Position}
 
@@ -19,7 +20,7 @@ defmodule Entice.Logic.Movement do
   do: Entity.remove_behaviour(entity, Movement.Behaviour)
 
 
-  def update(%Entity{attributes: %{MapInstance => %MapInstance{map: map, players: _}}} = entity, #TODO: Add Map instance attribute to players of the instance?
+  def update(entity,
       %Position{} = new_pos,
       %Movement{} = new_movement) do
     entity |> Entity.attribute_transaction(
@@ -28,7 +29,9 @@ defmodule Entice.Logic.Movement do
         |> Map.put(Position, new_pos)
         |> Map.put(Movement, new_movement)
       end)
-    Coordination.notify_all(map, {:movement_agent_updated, entity})
+    {:ok, %MapInstance{map: map, players: _}} = Entity.fetch_attribute(entity, MapInstance)    
+    #Can't figure out how to get eid from pid
+    Coordination.notify_all(map, {:movement_agent_updated, new_pos, entity}) #TODO: Change to use eid instead of pid for self seeking guard in seek l30
   end
 
 

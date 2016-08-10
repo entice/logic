@@ -44,6 +44,7 @@ defmodule Entice.Logic.MapInstance do
     def handle_event(
         {:map_instance_player_add, player_entity},
         %Entity{attributes: %{MapInstance => %MapInstance{map: map, players: players}}} = entity) do
+      player_entity |> Entity.attribute_transaction(fn attrs -> attrs |> Map.put(MapInstance, %MapInstance{map: map}) end)
       Coordination.register(player_entity, map) # TODO change map to something else if we have multiple instances
       {:ok, entity |> update_attribute(MapInstance, fn(m) -> %MapInstance{m | players: players+1} end)}
     end
@@ -51,7 +52,8 @@ defmodule Entice.Logic.MapInstance do
     def handle_event(
         {:map_instance_npc_add, %{name: name, model: model, position: position}},
         %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
-      {:ok, eid, _pid} = Npc.spawn(name, model, position)
+      {:ok, eid, _pid} = Npc.spawn(name, model, position)      
+      eid |> Entity.attribute_transaction(fn attrs -> attrs |> Map.put(MapInstance, %MapInstance{map: map}) end)
       Coordination.register(eid, map) # TODO change map to something else if we have multiple instances
       {:ok, entity}
     end
