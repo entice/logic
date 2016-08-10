@@ -29,28 +29,28 @@ defmodule Entice.Logic.Seek do
     def handle_event({:entity_change, %{entity_id: eid}}, %Entity{id: eid} = entity),
     do: {:ok, entity}
 
-    def handle_event({:entity_change, %{changed: %{Position => %Position{pos: mover_pos}}, entity_id: moving_entity_id}}, 
-      %Entity{attributes: %{Position => %Position{pos: my_pos},
+    def handle_event({:entity_change, %{changed: %{Position => %Position{coord: mover_coord}}, entity_id: moving_entity_id}}, 
+      %Entity{attributes: %{Position => %Position{coord: my_coord},
                             Movement => _,
-                            Npc      => %Npc{init_pos: init_pos},
+                            Npc      => %Npc{init_coord: init_coord},
                             Seek     => %Seek{aggro_distance: aggro_distance, escape_distance: escape_distance, target: target}}} = entity) do
       case target do
         nil ->
-          if calc_distance(my_pos, mover_pos) < aggro_distance do
+          if calc_distance(my_coord, mover_coord) < aggro_distance do
             {:ok, entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: moving_entity_id} end)
-                         |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end)}
+                         |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_coord} end)}
           else
             {:ok, entity}
           end            
           
         ^moving_entity_id ->
-          if calc_distance(init_pos, mover_pos) >= escape_distance do
+          if calc_distance(init_coord, mover_coord) >= escape_distance do
             {:ok, entity 
                   |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
-                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: init_pos} end)}
+                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: init_coord} end)}
           else
             {:ok, entity
-                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_pos} end)}
+                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_coord} end)}
           end
 
         _ -> {:ok, entity}

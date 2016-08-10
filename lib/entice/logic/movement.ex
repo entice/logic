@@ -37,8 +37,8 @@ defmodule Entice.Logic.Movement do
     def init(%Entity{attributes: %{Movement => _}} = entity, _args),
     do: {:ok, entity}
 
-    def init(%Entity{attributes: %{Position => %Position{pos: pos, plane: plane}}} = entity, _args),
-    do: {:ok, entity |> put_attribute(%Movement{goal: pos, plane: plane})}
+    def init(%Entity{attributes: %{Position => %Position{coord: coord, plane: plane}}} = entity, _args),
+    do: {:ok, entity |> put_attribute(%Movement{goal: coord, plane: plane})}
 
     def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Movement{})}

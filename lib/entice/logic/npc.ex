@@ -4,7 +4,7 @@ defmodule Entice.Logic.Npc do
   alias Entice.Logic.{Npc, Vitals, Movement, Seek}
   alias Entice.Logic.Player.{Name, Position, Level}
 
-  defstruct npc_model_id: :dhuum, init_pos: %Position{}
+  defstruct npc_model_id: :dhuum, init_coord: %Position{}
 
 
   def spawn(name, model, %Position{} = position, %{seeks: seeks} \\ %{seeks: true})
@@ -24,7 +24,7 @@ defmodule Entice.Logic.Npc do
       attrs
       |> Map.put(Name,     %Name{name: name})
       |> Map.put(Position, position)
-      |> Map.put(Npc,      %Npc{npc_model_id: model, init_pos: position.pos})
+      |> Map.put(Npc,      %Npc{npc_model_id: model, init_coord: position.coord})
       |> Map.put(Level,    %Level{level: 20})
     end)
   end

@@ -9,9 +9,8 @@ defmodule Entice.Logic.Player do
   defmodule Name, do: defstruct(
     name: "Unknown Entity")
 
-  #TODO: rename :pos to :coord ? Confusing sometimes
   defmodule Position, do: defstruct(
-    pos: %Coord{},
+    coord: %Coord{},
     plane: 1)
 
   defmodule Appearance, do: defstruct(
@@ -32,7 +31,7 @@ defmodule Entice.Logic.Player do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
       |> Map.put(Name, %Name{name: name})
-      |> Map.put(Position, %Position{pos: map.spawn})
+      |> Map.put(Position, %Position{coord: map.spawn})
       |> Map.put(Appearance, appearance)
       |> Map.put(Level, %Level{level: 20})
     end)
