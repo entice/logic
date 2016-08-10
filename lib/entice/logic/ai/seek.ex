@@ -22,16 +22,15 @@ defmodule Entice.Logic.Seek do
     def init(entity, %{aggro_distance: aggro_distance, escape_distance: escape_distance}),
     do: {:ok, entity |> put_attribute(%Seek{aggro_distance: aggro_distance, escape_distance: escape_distance})}
 
-    def init(entity, _args),
+    def init(entity, _args), 
     do: {:ok, entity |> put_attribute(%Seek{})}
 
     #No introspection for npcs ;)
-    def handle_event({:movement_agent_updated,  %Position{pos: _}, moving_entity_id}, %Entity{id: my_id} = entity)
-    when moving_entity_id == my_id,
+    def handle_event({:entity_change, %{entity_id: eid}}, %Entity{id: eid} = entity),
     do: {:ok, entity}
 
-    def handle_event({:movement_agent_updated,  %Position{pos: mover_pos}, moving_entity_id}, 
-      %Entity{attributes: %{Position => %Position{pos: my_pos}, 
+    def handle_event({:entity_change, %{changed: %{Position => %Position{pos: mover_pos}}, entity_id: moving_entity_id}}, 
+      %Entity{attributes: %{Position => %Position{pos: my_pos},
                             Movement => _,
                             Npc      => %Npc{init_pos: init_pos},
                             Seek     => %Seek{aggro_distance: aggro_distance, escape_distance: escape_distance, target: target}}} = entity) do

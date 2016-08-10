@@ -1,8 +1,7 @@
 defmodule Entice.Logic.Movement do
   alias Entice.Entity
-  alias Entice.Entity.Coordination
   alias Entice.Utils.Geom.Coord
-  alias Entice.Logic.{Movement, MapInstance, Player.Position}
+  alias Entice.Logic.{Movement, Player.Position}
 
 
   @doc """
@@ -29,9 +28,6 @@ defmodule Entice.Logic.Movement do
         |> Map.put(Position, new_pos)
         |> Map.put(Movement, new_movement)
       end)
-    {:ok, %MapInstance{map: map, players: _}} = Entity.fetch_attribute(entity, MapInstance)    
-    #Can't figure out how to get eid from pid
-    Coordination.notify_all(map, {:movement_agent_updated, new_pos, entity}) #TODO: Change to use eid instead of pid for self seeking guard in seek l30
   end
 
 
