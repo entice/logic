@@ -8,7 +8,7 @@ defmodule Entice.Logic.NpcTest do
 
 
   setup do
-    {:ok, _id, pid} = Npc.spawn("Dhuum", :dhuum, %Position{pos: %Coord{x: 1, y: 2}, plane: 3})
+    {:ok, _id, pid} = Npc.spawn("Dhuum", :dhuum, %Position{coord: %Coord{x: 1, y: 2}, plane: 3})
     {:ok, [entity: pid]}
   end
 
@@ -16,7 +16,7 @@ defmodule Entice.Logic.NpcTest do
     assert {:ok, %Name{name: "Dhuum"}} = Entity.fetch_attribute(pid, Name)
     assert {:ok, %Npc{npc_model_id: :dhuum}} = Entity.fetch_attribute(pid, Npc)
     assert {:ok, %Level{level: 20}} = Entity.fetch_attribute(pid, Level)
-    assert {:ok, %Position{pos: %Coord{x: 1, y: 2}, plane: 3}} = Entity.fetch_attribute(pid, Position)
+    assert {:ok, %Position{coord: %Coord{x: 1, y: 2}, plane: 3}} = Entity.fetch_attribute(pid, Position)
   end
 
   test "correct unregister", %{entity: pid} do
