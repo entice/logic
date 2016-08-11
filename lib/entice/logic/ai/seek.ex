@@ -22,7 +22,7 @@ defmodule Entice.Logic.Seek do
     def init(entity, %{aggro_distance: aggro_distance, escape_distance: escape_distance}),
     do: {:ok, entity |> put_attribute(%Seek{aggro_distance: aggro_distance, escape_distance: escape_distance})}
 
-    def init(entity, _args), 
+    def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Seek{})}
 
     #No introspection for npcs ;)
