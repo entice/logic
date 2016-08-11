@@ -8,7 +8,7 @@ defmodule Entice.Logic.Movement do
   Note that velocity is actually a coefficient for the real velocity thats used inside
   the client, but for simplicities sake we used velocity as a name.
   """
-  defstruct goal: %Coord{}, plane: 1, move_type: 9, velocity: 1.0
+  defstruct goal: %Coord{}, plane: 1, move_type: 9, velocity: 1.0, update_self: false, update_delay: 1
 
 
   def register(entity),
@@ -43,8 +43,22 @@ defmodule Entice.Logic.Movement do
     def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Movement{})}
 
+    def handle_event({:movement_calculate_next},
+      %Entity{attributes: %{Movement => %Movement{update_self: update_self, update_delay: update_delay}}} = _entity) do
+      #TODO: implement once the whole collision business is handled
+      if update_self, do: start_update_trigger_timer(:movement_calculate_next, update_delay)
+    end
 
     def terminate(_reason, entity),
     do: {:ok, entity |> remove_attribute(Movement)}
+
+    defp start_update_trigger_timer(message, time) do
+      if time == 0 do
+        self |> send(message)
+        nil
+      else
+        self |> Process.send_after(message, time)
+      end
+    end
   end
 end
