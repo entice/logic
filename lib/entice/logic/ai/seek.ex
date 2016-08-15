@@ -42,7 +42,6 @@ defmodule Entice.Logic.Seek do
             {:ok, entity}
           end
 
-
         ^moving_entity_id ->
           if past_escape_range?(init_coord, mover_coord, escape_distance) do
             {:ok, entity |> return_to_spawn(init_coord)}
