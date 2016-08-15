@@ -44,21 +44,13 @@ defmodule Entice.Logic.Movement do
     do: {:ok, entity |> put_attribute(%Movement{})}
 
     def handle_event({:movement_calculate_next},
-      %Entity{attributes: %{Movement => %Movement{update_self: update_self, update_delay: update_delay}}} = _entity) do
+      %Entity{attributes: %{Movement => %Movement{update_self: update_self, update_delay: update_delay}}} = entity) do
       #TODO: implement once the whole collision business is handled
-      if update_self, do: start_update_trigger_timer(:movement_calculate_next, update_delay)
+      if update_self, do: self |> Process.send_after(:movement_calculate_next, update_delay)
+      {:ok, entity}
     end
 
     def terminate(_reason, entity),
     do: {:ok, entity |> remove_attribute(Movement)}
-
-    defp start_update_trigger_timer(message, time) do
-      if time == 0 do
-        self |> send(message)
-        nil
-      else
-        self |> Process.send_after(message, time)
-      end
-    end
   end
 end

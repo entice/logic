@@ -29,36 +29,51 @@ defmodule Entice.Logic.Seek do
     def handle_event({:entity_change, %{entity_id: eid}}, %Entity{id: eid} = entity),
     do: {:ok, entity}
 
-    def handle_event({:entity_change, %{changed: %{Position => %Position{coord: mover_coord}}, entity_id: moving_entity_id}}, 
+    def handle_event({:entity_change, %{changed: %{Position => %Position{coord: mover_coord}}, entity_id: moving_entity_id}},
       %Entity{attributes: %{Position => %Position{coord: my_coord},
                             Movement => _,
                             Npc      => %Npc{init_coord: init_coord},
                             Seek     => %Seek{aggro_distance: aggro_distance, escape_distance: escape_distance, target: target}}} = entity) do
       case target do
         nil ->
-          if calc_distance(my_coord, mover_coord) < aggro_distance do
-            {:ok, entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: moving_entity_id} end)
-                         |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_coord} end)}
+          if in_aggro_range?(my_coord, mover_coord, aggro_distance) do
+            {:ok, entity |> seek_target_current_coord(moving_entity_id, mover_coord)}
           else
             {:ok, entity}
-          end            
-          
+          end
+
+
         ^moving_entity_id ->
-          if calc_distance(init_coord, mover_coord) >= escape_distance do
-            {:ok, entity 
-                  |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
-                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: init_coord} end)}
+          if past_escape_range?(init_coord, mover_coord, escape_distance) do
+            {:ok, entity |> return_to_spawn(init_coord)}
           else
-            {:ok, entity
-                  |> update_attribute(Movement, fn(m) -> %Movement{m | goal: mover_coord} end)}
+            {:ok, entity |> seek_target_current_coord(moving_entity_id, mover_coord)}
           end
 
         _ -> {:ok, entity}
-      end 
+      end
     end
 
     def terminate(_reason, entity),
     do: {:ok, entity |> remove_attribute(Seek)}
+
+    defp in_aggro_range?(my_coord, mover_coord, aggro_distance),
+    do: calc_distance(my_coord, mover_coord) < aggro_distance
+
+    defp past_escape_range?(init_coord, mover_coord, escape_distance),
+    do: calc_distance(init_coord, mover_coord) >= escape_distance
+
+    defp seek_target_current_coord(entity, target_id, target_coord) do
+      entity
+      |> update_attribute(Seek, fn(s) -> %Seek{s | target: target_id} end)
+      |> update_attribute(Movement, fn(m) -> %Movement{m | goal: target_coord} end)
+    end
+
+    defp return_to_spawn(entity, spawn_coord) do
+      entity
+      |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
+      |> update_attribute(Movement, fn(m) -> %Movement{m | goal: spawn_coord} end)
+    end
 
     #TODO: Should probably move to Coord in Utils
     defp calc_distance(%Coord{x: x1, y: y1}, %Coord{x: x2, y: y2}) do
