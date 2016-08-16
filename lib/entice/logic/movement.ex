@@ -4,11 +4,14 @@ defmodule Entice.Logic.Movement do
   alias Entice.Logic.{Movement, Player.Position}
 
 
+  @update_interval 50
+
+
   @doc """
   Note that velocity is actually a coefficient for the real velocity thats used inside
   the client, but for simplicities sake we used velocity as a name.
   """
-  defstruct goal: %Coord{}, plane: 1, move_type: 9, velocity: 1.0, update_self: false, update_delay: 1
+  defstruct goal: %Coord{}, plane: 1, move_type: 9, velocity: 1.0, auto_updating?: false
 
 
   def register(entity),
@@ -30,6 +33,8 @@ defmodule Entice.Logic.Movement do
       end)
   end
 
+  def update_interval, do: @update_interval
+
 
   defmodule Behaviour do
     use Entice.Entity.Behaviour
@@ -44,9 +49,9 @@ defmodule Entice.Logic.Movement do
     do: {:ok, entity |> put_attribute(%Movement{})}
 
     def handle_event({:movement_calculate_next},
-      %Entity{attributes: %{Movement => %Movement{update_self: update_self, update_delay: update_delay}}} = entity) do
+      %Entity{attributes: %{Movement => %Movement{auto_updating?: auto_updating?}}} = entity) do
       #TODO: implement once the whole collision business is handled
-      if update_self, do: self |> Process.send_after(:movement_calculate_next, update_delay)
+      if auto_updating?, do: self |> Process.send_after(:movement_calculate_next, Movement.update_interval)
       {:ok, entity}
     end
 
