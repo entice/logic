@@ -3,7 +3,7 @@ defmodule Entice.Logic.Seek do
   alias Entice.Logic.{Seek, Player.Position, Npc, Movement}
   alias Entice.Utils.Geom.Coord
 
-  defstruct target: nil, aggro_distance: 10, escape_distance: 20
+  defstruct target: nil, aggro_distance: 1000, escape_distance: 2000
 
   def register(entity),
   do: Entity.put_behaviour(entity, Seek.Behaviour, [])
@@ -57,7 +57,7 @@ defmodule Entice.Logic.Seek do
     do: {:ok, entity |> remove_attribute(Seek)}
 
     defp in_aggro_range?(my_coord, mover_coord, aggro_distance),
-    do: calc_distance(my_coord, mover_coord) < aggro_distance
+    do: calc_distance(my_coord, mover_coord) <= aggro_distance
 
     defp past_escape_range?(init_coord, mover_coord, escape_distance),
     do: calc_distance(init_coord, mover_coord) >= escape_distance
