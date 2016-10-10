@@ -23,8 +23,8 @@ defmodule Entice.Logic.SeekTest do
     {:ok, [npc_entity: npc_pid, npc_eid: npc_eid, player_eid: player_eid, player_entity: player_pid, npc_init_coord: npc_init_coord]}
   end
 
-  test "correct default register", %{npc_entity: pid} do
-    assert {:ok, %Seek{target: nil, aggro_distance: 10, escape_distance: 20}} = Entity.fetch_attribute(pid, Seek)
+  test "register", %{npc_entity: pid} do
+    assert {:ok, %Seek{target: nil, aggro_distance: _, escape_distance: _}} = Entity.fetch_attribute(pid, Seek)
   end
 
   test "update same entity", %{npc_entity: pid} do
@@ -33,7 +33,7 @@ defmodule Entice.Logic.SeekTest do
   end
 
   test "update no target, entity close enough to aggro", %{npc_entity: npc_pid, player_eid: player_eid, player_entity: player_pid} do
-    #Move player within 2 units of distance of npc with aggro distance of 10 (default)
+    #Move player within 2 units of distance of npc with aggro distance of 1000
     mover_coord = %Coord{x: 14, y: 10}
     simulate_movement_update(player_pid, %Position{coord: mover_coord}, %Movement{goal: mover_coord})
 
@@ -43,7 +43,7 @@ defmodule Entice.Logic.SeekTest do
   end
 
   test "update no target, entity too far to aggro", %{npc_entity: npc_pid, player_entity: player_pid} do
-    simulate_movement_update(player_pid, %Position{coord: %Coord{x: 19, y: 15}}, %Movement{goal: %Coord{x: 0, y: 0}})
+    simulate_movement_update(player_pid, %Position{coord: %Coord{x: 460, y: 910}}, %Movement{goal: %Coord{x: 0, y: 0}})
     assert {:ok, %Seek{target: nil}} = Entity.fetch_attribute(npc_pid, Seek)
   end
 
@@ -61,7 +61,7 @@ defmodule Entice.Logic.SeekTest do
     assert {:ok, %Seek{target: ^player_eid}} = Entity.fetch_attribute(npc_pid, Seek)
   end
 
-  test "update has target, entity is current target, entity escapes", 
+  test "update has target, entity is current target, entity escapes",
   %{npc_entity: npc_pid, player_eid: player_eid, player_entity: player_pid, npc_init_coord: npc_init_coord} do
     #Set player as target
     Entity.put_attribute(npc_pid, %Seek{target: player_eid, aggro_distance: 10, escape_distance: 20})
@@ -90,6 +90,6 @@ defmodule Entice.Logic.SeekTest do
         attrs
         |> Map.put(Position, new_coord)
         |> Map.put(Movement, new_movement)
-      end)    
+      end)
   end
 end
