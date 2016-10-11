@@ -12,7 +12,7 @@ defmodule Entice.Logic.SeekTest do
 
   setup do
     npc_init_coord =  %Coord{x: 10, y: 10}
-    {:ok, npc_eid, npc_pid} = Npc.spawn("Dhuum", :dhuum, %Position{coord: npc_init_coord})
+    {:ok, npc_eid, npc_pid} = Npc.spawn("Dhuum", :dhuum, %Position{coord: npc_init_coord}, seeks: true)
     {:ok, player_eid, player_pid} = Entity.start
     #Sets an initial pos for the player so the Position attr appears as changed and not added in the following tests
     simulate_movement_update(player_pid, %Position{coord: %Coord{x: 1, y: 2}}, %Movement{goal: %Coord{x: 3, y: 4}})

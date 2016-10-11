@@ -17,8 +17,8 @@ defmodule Entice.Logic.Movement do
   def register(entity),
   do: Entity.put_behaviour(entity, Movement.Behaviour, [])
 
-  def register(entity, %{auto_updating?: auto_updating?}),
-  do: Entity.put_behaviour(entity, Movement.Behaviour, %{auto_updating?: auto_updating?})
+  def register(entity, auto_updating?: auto_updating?),
+  do: Entity.put_behaviour(entity, Movement.Behaviour, auto_updating?: auto_updating?)
 
   def unregister(entity),
   do: Entity.remove_behaviour(entity, Movement.Behaviour)
@@ -44,8 +44,8 @@ defmodule Entice.Logic.Movement do
     def init(%Entity{attributes: %{Movement => _}} = entity, _args),
     do: {:ok, entity}
 
-    def init(%Entity{attributes: %{Position => %Position{coord: coord, plane: plane}}} = entity, %{auto_updating?: true}) do
-      self |> Process.send_after({:movement_calculate_next}, 1)
+    def init(%Entity{attributes: %{Position => %Position{coord: coord, plane: plane}}} = entity, auto_updating?: true) do
+      self |> Process.send_after(:movement_calculate_next, 1)
       {:ok, entity |> put_attribute(%Movement{goal: coord, plane: plane, auto_updating?: true})}
     end
 
@@ -55,10 +55,10 @@ defmodule Entice.Logic.Movement do
     def init(entity, _args),
     do: {:ok, entity |> put_attribute(%Movement{})}
 
-    def handle_event({:movement_calculate_next},
+    def handle_event(:movement_calculate_next,
       %Entity{attributes: %{Movement => %Movement{auto_updating?: auto_updating?}}} = entity) do
       #TODO: implement once the whole collision business is handled
-      if auto_updating?, do: self |> Process.send_after({:movement_calculate_next}, Movement.update_interval)
+      if auto_updating?, do: self |> Process.send_after(:movement_calculate_next, Movement.update_interval)
       {:ok, entity}
     end
 

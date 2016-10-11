@@ -12,9 +12,9 @@ defmodule Entice.Logic.Npc do
     {:ok, id, pid} = Entity.start()
     Npc.register(id, name, model, position)
     Vitals.register(id)
-    if opts[:seeks] || true do
+    if opts[:seeks] do
       Seek.register(id)
-      Movement.register(id, %{auto_updating?: true})
+      Movement.register(id, auto_updating?: true)
     else
       Movement.register(id)
     end
