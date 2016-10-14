@@ -1,9 +1,10 @@
 defmodule Entice.Logic.Seek do
   alias Entice.Entity
   alias Entice.Logic.{Seek, Player.Position, Npc, Movement}
-  alias Entice.Utils.Geom.Coord
+  alias Geom.Shape.{Path, Vector}
+  alias Geom.Ai.Astar
 
-  defstruct target: nil, aggro_distance: 1000, escape_distance: 2000
+  defstruct target: nil, aggro_distance: 1000, escape_distance: 2000, path: []
 
   def register(entity),
   do: Entity.put_behaviour(entity, Seek.Behaviour, [])
@@ -44,7 +45,7 @@ defmodule Entice.Logic.Seek do
 
         ^moving_entity_id ->
           if past_escape_range?(init_coord, mover_coord, escape_distance) do
-            {:ok, entity |> return_to_spawn(init_coord)}
+            {:ok, entity |> return_to_spawn(my_coord, init_coord)}
           else
             {:ok, entity |> seek_target_current_coord(moving_entity_id, mover_coord)}
           end
@@ -57,26 +58,34 @@ defmodule Entice.Logic.Seek do
     do: {:ok, entity |> remove_attribute(Seek)}
 
     defp in_aggro_range?(my_coord, mover_coord, aggro_distance),
-    do: calc_distance(my_coord, mover_coord) <= aggro_distance
+    do: Vector.dist(my_coord, mover_coord) <= aggro_distance
 
     defp past_escape_range?(init_coord, mover_coord, escape_distance),
-    do: calc_distance(init_coord, mover_coord) >= escape_distance
+    do: Vector.dist(init_coord, mover_coord) >= escape_distance
 
-    defp seek_target_current_coord(entity, target_id, target_coord) do
-      entity
-      |> update_attribute(Seek, fn(s) -> %Seek{s | target: target_id} end)
-      |> update_attribute(Movement, fn(m) -> %Movement{m | goal: target_coord} end)
+    defp seek_target_current_coord(%Entity{attributes: %{Position => %Position{coord: my_coord},
+      Npc => %Npc{map: map}, Seek => %Seek{path: path}}} = entity, target_id, target_coord) do
+      {success, result} = Astar.get_path(map.nav_mesh, my_coord, target_coord)
+
+      %Path{vertices: new_path} = case success do
+        :ok -> result
+
+        :error -> Path.empty
+      end
+
+      entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: target_id, path: new_path} end)
     end
 
-    defp return_to_spawn(entity, spawn_coord) do
-      entity
-      |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil} end)
-      |> update_attribute(Movement, fn(m) -> %Movement{m | goal: spawn_coord} end)
-    end
+    defp return_to_spawn(%Entity{attributes: %{Npc => %Npc{map: map}}} = entity, my_coord, spawn_coord) do
+      {success, result} = Astar.get_path(map.nav_mesh, my_coord, spawn_coord)
 
-    #TODO: Should probably move to Coord in Utils
-    defp calc_distance(%Coord{x: x1, y: y1}, %Coord{x: x2, y: y2}) do
-      :math.sqrt(:math.pow((x2-x1), 2) + :math.pow((y2-y1), 2))
+      %Path{vertices: new_path} = case success do
+        :ok -> result
+
+        :error -> Path.empty
+      end
+
+      entity |> update_attribute(Seek, fn(s) -> %Seek{s | target: nil, path: new_path} end)
     end
   end
 end

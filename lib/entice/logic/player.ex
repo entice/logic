@@ -3,14 +3,14 @@ defmodule Entice.Logic.Player do
   Responsible for the basic player stats.
   """
   alias Entice.Entity
-  alias Entice.Utils.Geom.Coord
+  alias Geom.Shape.Vector2D
 
 
   defmodule Name, do: defstruct(
     name: "Unknown Entity")
 
   defmodule Position, do: defstruct(
-    coord: %Coord{},
+    coord: %Vector2D{},
     plane: 1)
 
   defmodule Appearance, do: defstruct(

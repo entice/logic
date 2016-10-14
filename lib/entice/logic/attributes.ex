@@ -5,7 +5,7 @@ defmodule Entice.Logic.Attributes do
 
   defmacro __using__(_) do
     quote do
-      alias Entice.Utils.Geom.Coord
+      alias Geom.Shape.Vector2D
       alias Entice.Logic.Player.Name
       alias Entice.Logic.Player.Position
       alias Entice.Logic.Player.MapInstance
