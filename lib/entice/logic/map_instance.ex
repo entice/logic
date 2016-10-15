@@ -51,7 +51,7 @@ defmodule Entice.Logic.MapInstance do
     def handle_event(
         {:map_instance_npc_add, %{name: name, model: model, position: position}},
         %Entity{attributes: %{MapInstance => %MapInstance{map: map}}} = entity) do
-      {:ok, eid, _pid} = Npc.spawn(name, model, position)
+      {:ok, eid, _pid} = Npc.spawn(map, name, model, position, seeks: true)
       Coordination.register(eid, map) # TODO change map to something else if we have multiple instances
       {:ok, entity}
     end

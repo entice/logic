@@ -1,9 +1,9 @@
 defmodule Entice.Logic.MovementTest do
   use ExUnit.Case, async: true
   alias Entice.Entity
-  alias Entice.Utils.Geom.Coord
   alias Entice.Logic.Movement
   alias Entice.Logic.Player.Position
+  alias Geom.Shape.Vector2D
 
 
   setup do
@@ -21,26 +21,26 @@ defmodule Entice.Logic.MovementTest do
 
   test "register with position", %{entity: pid} do
     Movement.unregister(pid) # remove again, so we can add a new one
-    Entity.put_attribute(pid, %Position{pos: %Coord{x: 42, y: 1337}, plane: 7})
+    Entity.put_attribute(pid, %Position{coord: %Vector2D{x: 42, y: 1337}, plane: 7})
     Movement.register(pid)
-    m = %Movement{goal: %Coord{x: 42, y: 1337}, plane: 7}
+    m = %Movement{goal: %Vector2D{x: 42, y: 1337}, plane: 7}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
 
   test "register with movement", %{entity: pid} do
     Movement.unregister(pid) # remove again, so we can add a new one
-    Entity.put_attribute(pid, %Movement{goal: %Coord{x: 42, y: 1337}})
+    Entity.put_attribute(pid, %Movement{goal: %Vector2D{x: 42, y: 1337}})
     Movement.register(pid)
-    m = %Movement{goal: %Coord{x: 42, y: 1337}}
+    m = %Movement{goal: %Vector2D{x: 42, y: 1337}}
     assert {:ok, ^m} = Entity.fetch_attribute(pid, Movement)
   end
 
 
   test "update", %{entity: pid} do
     Movement.update(pid,
-      %Position{pos: %Coord{x: 42, y: 1337}, plane: 7},
-      %Movement{goal: %Coord{x: 1337, y: 42}, plane: 13, move_type: 5, velocity: 0.5})
+      %Position{coord: %Vector2D{x: 42, y: 1337}, plane: 7},
+      %Movement{goal: %Vector2D{x: 1337, y: 42}, plane: 13, move_type: 5, velocity: 0.5})
     assert {:ok, %Position{plane: 7}} = Entity.fetch_attribute(pid, Position)
     assert {:ok, %Movement{move_type: 5}} = Entity.fetch_attribute(pid, Movement)
   end

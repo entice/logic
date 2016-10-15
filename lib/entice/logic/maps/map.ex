@@ -4,7 +4,7 @@ defmodule Entice.Logic.Map do
   Is mainly used in area.ex where all the maps are defined.
   """
   import Inflex
-  alias Entice.Utils.Geom.Coord
+  alias Geom.Shape.Vector2D
 
   defmacro __using__(_) do
     quote do
@@ -17,16 +17,18 @@ defmodule Entice.Logic.Map do
 
 
   defmacro defmap(mapname, opts \\ []) do
-    spawn   = Keyword.get(opts, :spawn, quote do %Coord{} end)
+    spawn   = Keyword.get(opts, :spawn, quote do %Vector2D{} end)
     outpost = Keyword.get(opts, :outpost, quote do true end)
+    nav_mesh = Keyword.get(opts, :nav_mesh, quote do nil end)
 
     map_content = content(Macro.to_string(mapname))
     quote do
       defmodule unquote(mapname) do
-        alias Entice.Utils.Geom.Coord
+        alias Geom.Shape.Vector2D
         unquote(map_content)
         def spawn, do: unquote(spawn)
         def is_outpost?, do: unquote(outpost)
+        def nav_mesh, do: unquote(nav_mesh)
       end
       @maps [ unquote(mapname) | @maps ]
     end
@@ -58,10 +60,11 @@ defmodule Entice.Logic.Map do
       def name, do: unquote(name)
       def underscore_name, do: unquote(uname)
 
-      def spawn, do: %Coord{}
+      def spawn, do: %Vector2D{}
       def is_outpost?, do: true
+      def nav_mesh, do: nil
 
-      defoverridable [spawn: 0, is_outpost?: 0]
+      defoverridable [spawn: 0, is_outpost?: 0, nav_mesh: 0]
     end
   end
 end

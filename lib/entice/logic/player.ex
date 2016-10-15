@@ -3,14 +3,14 @@ defmodule Entice.Logic.Player do
   Responsible for the basic player stats.
   """
   alias Entice.Entity
-  alias Entice.Utils.Geom.Coord
+  alias Geom.Shape.Vector2D
 
 
   defmodule Name, do: defstruct(
     name: "Unknown Entity")
 
   defmodule Position, do: defstruct(
-    pos: %Coord{},
+    coord: %Vector2D{},
     plane: 1)
 
   defmodule Appearance, do: defstruct(
@@ -31,7 +31,7 @@ defmodule Entice.Logic.Player do
     entity |> Entity.attribute_transaction(fn (attrs) ->
       attrs
       |> Map.put(Name, %Name{name: name})
-      |> Map.put(Position, %Position{pos: map.spawn})
+      |> Map.put(Position, %Position{coord: map.spawn})
       |> Map.put(Appearance, appearance)
       |> Map.put(Level, %Level{level: 20})
     end)
